@@ -9,8 +9,78 @@ POS.pages.inventoryRecipes = async function(){
   return `
     <div class="inventory-subpage">
 
-      <!-- TEST: HEADER REMOVED -->
+      <!-- =================================================
+           HEADER
+           ================================================= -->
+      <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:flex-start;
+        gap:20px;
+        margin-bottom:22px;
+      ">
 
+        <div>
+          <h1 class="page-title" style="
+            margin:0 0 5px;
+            font-size:30px;
+            font-weight:800;
+            color:#1f2937;
+          ">
+            🍳 สูตร
+          </h1>
+
+          <p class="page-subtitle" style="
+            margin:0;
+          ">
+            สูตรอาหารและการใช้วัตถุดิบ
+          </p>
+        </div>
+
+        <div style="
+          display:flex;
+          align-items:center;
+          gap:10px;
+          flex-wrap:wrap;
+        ">
+          <button
+            id="posInventoryRecipesBackBtn"
+            class="btn-secondary"
+            type="button"
+            onclick="POS.inventoryBackToMain()"
+            style="
+              min-height:42px;
+              padding:0 16px;
+              border-radius:10px;
+              font-weight:700;
+            "
+          >
+            ← กลับหน้าสต็อก
+          </button>
+
+          <button
+            id="posInventoryRecipesAddBtn"
+            class="btn-primary"
+            type="button"
+            onclick="POS.inventoryRecipesOpenAdd()"
+            style="
+              min-height:42px;
+              padding:0 18px;
+              border-radius:10px;
+              font-weight:700;
+              background:#e8f6ec;
+              color:#267a3d;
+              border:1px solid #b9dec3;
+            "
+          >
+            ➕ เพิ่มสูตร
+          </button>
+        </div>
+
+      </div>
+
+
+      <!-- TEST 31 : HEADER RESTORED -->
 
       <!-- =================================================
            SUMMARY
