@@ -21,7 +21,7 @@ POS.pages.inventoryRecipes = async function(){
       ">
 
         <div>
-          
+          <div style="height:35px;"></div>
 
           <p class="page-subtitle" style="
             margin:0;
