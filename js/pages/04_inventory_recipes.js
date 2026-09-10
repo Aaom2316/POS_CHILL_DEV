@@ -117,7 +117,7 @@ POS.pages.inventoryRecipes = async function(){
 
       </div>
 
-      <div id="posInventoryRecipesListCount" style="display:none;"></div>
+      
 
 
       <div style="
@@ -189,13 +189,142 @@ POS.pages.inventoryRecipes = async function(){
 
       </div>
 
-      <div
-        id="posInventoryRecipesTableBody"
-        style="
-          width:100%;
-          min-height:100px;
-        "
-      ></div>
+      <!-- =================================================
+           TEST 19 : RECIPE LIST CARD + TABLE
+           เพิ่มกลับมา 2 อย่างพร้อมกัน
+           1) Recipe List Card
+           2) Table container
+           ================================================= -->
+      <div class="card" style="
+        padding:0;
+        overflow:hidden;
+      ">
+
+        <div style="
+          padding:18px 18px 14px;
+          display:flex;
+          justify-content:space-between;
+          align-items:center;
+          gap:12px;
+        ">
+
+          <div>
+
+            <div style="
+              font-size:18px;
+              font-weight:800;
+              color:#1f2937;
+            ">
+              📋 รายการสูตร
+            </div>
+
+            <div style="
+              margin-top:4px;
+              color:#94a3b8;
+              font-size:12px;
+            ">
+              จัดการสูตรและวัตถุดิบที่ใช้ในแต่ละเมนู
+            </div>
+
+          </div>
+
+          <div id="posInventoryRecipesListCount" style="
+            padding:7px 11px;
+            border-radius:999px;
+            background:#f8fafc;
+            color:#64748b;
+            font-size:12px;
+            font-weight:700;
+            white-space:nowrap;
+          ">
+            0 รายการ
+          </div>
+
+        </div>
+
+        <div style="
+          overflow-x:auto;
+        ">
+
+          <table style="
+            width:100%;
+            border-collapse:collapse;
+            min-width:980px;
+          ">
+
+            <thead>
+
+              <tr style="
+                background:#f8fafc;
+                border-bottom:1px solid #e2e8f0;
+              ">
+
+                <th style="
+                  padding:12px;
+                  text-align:left;
+                  white-space:nowrap;
+                  color:#475569;
+                  font-size:12px;
+                  font-weight:800;
+                ">
+                  รหัสสูตร
+                </th>
+
+                <th style="
+                  padding:12px;
+                  text-align:left;
+                  white-space:nowrap;
+                  color:#475569;
+                  font-size:12px;
+                  font-weight:800;
+                ">
+                  ชื่อสูตร
+                </th>
+
+                <th style="
+                  padding:12px;
+                  text-align:center;
+                  white-space:nowrap;
+                  color:#475569;
+                  font-size:12px;
+                  font-weight:800;
+                ">
+                  จำนวนวัตถุดิบ
+                </th>
+
+                <th style="
+                  padding:12px;
+                  text-align:center;
+                  white-space:nowrap;
+                  color:#475569;
+                  font-size:12px;
+                  font-weight:800;
+                ">
+                  สถานะ
+                </th>
+
+                <th style="
+                  padding:12px;
+                  text-align:center;
+                  white-space:nowrap;
+                  color:#475569;
+                  font-size:12px;
+                  font-weight:800;
+                ">
+                  จัดการ
+                </th>
+
+              </tr>
+
+            </thead>
+
+            <tbody id="posInventoryRecipesTableBody"></tbody>
+
+          </table>
+
+        </div>
+
+      </div>
 
       
 
@@ -292,23 +421,27 @@ POS.inventoryRecipesRender = function(){
     recipes.map(function(item){
 
       return `
-        <div style="
-          display:grid;
-          grid-template-columns:180px minmax(240px,1fr) 180px 150px 150px;
-          min-width:980px;
-          padding:14px 12px;
-          box-sizing:border-box;
+        <tr style="
           border-bottom:1px solid #eef1f4;
           font-size:14px;
           color:#1f2937;
-          align-items:center;
         ">
-          <div>${String(item.menu_sku || "-")}</div>
-          <div>${String(item.menu_name || "-")}</div>
-          <div style="text-align:center;">1 รายการ</div>
-          <div style="text-align:center;">ใช้งาน</div>
-          <div style="text-align:center;">ทดสอบ</div>
-        </div>
+          <td style="padding:14px 12px;">
+            ${String(item.menu_sku || "-")}
+          </td>
+          <td style="padding:14px 12px;">
+            ${String(item.menu_name || "-")}
+          </td>
+          <td style="padding:14px 12px;text-align:center;">
+            1 รายการ
+          </td>
+          <td style="padding:14px 12px;text-align:center;">
+            ใช้งาน
+          </td>
+          <td style="padding:14px 12px;text-align:center;">
+            ทดสอบ
+          </td>
+        </tr>
       `;
 
     }).join("");
