@@ -1,7 +1,7 @@
 /* ============================================================
-   POS CHILL - RECIPES TEST 04
-   NEW CODE TEST MARKER
-   TEST 04: TRUE RECIPES RENDER BASE
+   POS CHILL - RECIPES
+   🧪 NEW CODE / UPDATE TEST 12 • 60 ROW REAL RENDER + ESCAPE
+   TEST 11: RECIPES + 60 ROW MOCK DATA + REAL RENDER
    ============================================================ */
 
 window.POS = window.POS || {};
@@ -11,8 +11,20 @@ POS.pages = POS.pages || {};
    STOCK PAGE 05 : MOVEMENT
    ===================================================== */
 
-POS.pages.inventoryMovement = async function(){
-  setTimeout(() => POS.inventoryMovementLoad(), 0);
+POS.pages.inventoryRecipes = async function(){
+
+  /*
+   * ตอนเปิดผ่าน Stock Router จะให้ Router เป็นผู้ LOAD หลัง DOM settle
+   * เพื่อไม่ให้โหลดซ้ำกับ setTimeout ของ page factory
+   * กรณีเรียก page factory โดยตรงจึงยัง LOAD แบบเดิมได้
+   */
+  if(!POS.inventoryRecipesOpening){
+    setTimeout(function(){
+      if(typeof POS.inventoryRecipesLoad === "function"){
+        POS.inventoryRecipesLoad();
+      }
+    }, 0);
+  }
 
   return `
     <div class="inventory-subpage">
@@ -35,57 +47,56 @@ POS.pages.inventoryMovement = async function(){
             font-weight:800;
             color:#1f2937;
           ">
-            📦 Movement
+            🍳 สูตร
           </h1>
 
           <p class="page-subtitle" style="
             margin:0;
-            color:#64748b;
-            font-size:15px;
           ">
-            ประวัติการเคลื่อนไหวของสต็อก • 🧪 NEW CODE / UPDATE TEST 04
+            สูตรอาหารและการใช้วัตถุดิบ • 🧪 NEW CODE / UPDATE TEST 12 • 60 ROW REAL RENDER + ESCAPE • 🧪 NEW CODE / UPDATE TEST 12 • 60 ROW REAL RENDER + ESCAPE
           </p>
         </div>
 
         <div style="
           display:flex;
           align-items:center;
-          gap:8px;
+          gap:10px;
+          flex-wrap:wrap;
         ">
+
           <button
-            type="button"
+            id="posInventoryRecipesBackBtn"
             class="btn-secondary"
+            type="button"
             onclick="POS.inventoryBackToMain()"
             style="
-              padding:11px 18px;
+              min-height:42px;
+              padding:0 16px;
               border-radius:10px;
-              border:1px solid #d7dce2;
-              background:#fff;
-              color:#374151;
               font-weight:700;
-              cursor:pointer;
             "
           >
-            ← กลับ
+            ← กลับหน้าสต็อก
           </button>
 
           <button
-            id="posMovementRefreshBtn"
+            id="posInventoryRecipesAddBtn"
+            class="btn-primary"
             type="button"
-            class="btn-secondary"
-            onclick="POS.inventoryMovementLoad()"
-            style=
-              padding:11px 18px;
+            onclick="POS.inventoryRecipesOpenAdd()"
+            style="
+              min-height:42px;
+              padding:0 18px;
               border-radius:10px;
-              border:1px solid #d7dce2;
-              background:#fff;
-              color:#374151;
               font-weight:700;
-              cursor:pointer;
+              background:#e8f6ec;
+              color:#267a3d;
+              border:1px solid #b9dec3;
             "
           >
-            🔄 รีเฟรช
+            ➕ เพิ่มสูตร
           </button>
+
         </div>
 
       </div>
@@ -96,7 +107,7 @@ POS.pages.inventoryMovement = async function(){
            ================================================= -->
       <div style="
         display:grid;
-        grid-template-columns:repeat(4,minmax(0,1fr));
+        grid-template-columns:repeat(3,minmax(0,1fr));
         gap:16px;
         margin-bottom:20px;
       ">
@@ -109,14 +120,14 @@ POS.pages.inventoryMovement = async function(){
           box-shadow:0 2px 8px rgba(15,23,42,.04);
         ">
           <div style="
-            font-size:13px;
             color:#94a3b8;
+            font-size:13px;
             font-weight:700;
           ">
-            การเคลื่อนไหวทั้งหมด
+            สูตรทั้งหมด
           </div>
 
-          <div id="posMovementTotalCount" style="
+          <div id="posInventoryRecipesTotal" style="
             margin-top:7px;
             font-size:25px;
             font-weight:800;
@@ -126,9 +137,9 @@ POS.pages.inventoryMovement = async function(){
           </div>
 
           <div style="
-            margin-top:4px;
-            font-size:12px;
+            margin-top:3px;
             color:#94a3b8;
+            font-size:12px;
           ">
             รายการ
           </div>
@@ -143,14 +154,14 @@ POS.pages.inventoryMovement = async function(){
           box-shadow:0 2px 8px rgba(15,23,42,.04);
         ">
           <div style="
-            font-size:13px;
             color:#94a3b8;
+            font-size:13px;
             font-weight:700;
           ">
-            รับเข้า
+            ใช้งานอยู่
           </div>
 
-          <div id="posMovementPurchaseCount" style="
+          <div id="posInventoryRecipesActive" style="
             margin-top:7px;
             font-size:25px;
             font-weight:800;
@@ -160,11 +171,11 @@ POS.pages.inventoryMovement = async function(){
           </div>
 
           <div style="
-            margin-top:4px;
-            font-size:12px;
+            margin-top:3px;
             color:#94a3b8;
+            font-size:12px;
           ">
-            รายการ
+            สูตร
           </div>
         </div>
 
@@ -177,48 +188,14 @@ POS.pages.inventoryMovement = async function(){
           box-shadow:0 2px 8px rgba(15,23,42,.04);
         ">
           <div style="
-            font-size:13px;
             color:#94a3b8;
+            font-size:13px;
             font-weight:700;
           ">
-            เบิก / ลด
+            วัตถุดิบที่ใช้
           </div>
 
-          <div id="posMovementSaleCount" style="
-            margin-top:7px;
-            font-size:25px;
-            font-weight:800;
-            color:#c0392b;
-          ">
-            0
-          </div>
-
-          <div style="
-            margin-top:4px;
-            font-size:12px;
-            color:#94a3b8;
-          ">
-            รายการ
-          </div>
-        </div>
-
-
-        <div style="
-          background:#fff;
-          border:1px solid #e5e7eb;
-          border-radius:14px;
-          padding:18px;
-          box-shadow:0 2px 8px rgba(15,23,42,.04);
-        ">
-          <div style="
-            font-size:13px;
-            color:#94a3b8;
-            font-weight:700;
-          ">
-            ปรับสต็อก
-          </div>
-
-          <div id="posMovementAdjustCount" style="
+          <div id="posInventoryRecipesIngredients" style="
             margin-top:7px;
             font-size:25px;
             font-weight:800;
@@ -228,9 +205,9 @@ POS.pages.inventoryMovement = async function(){
           </div>
 
           <div style="
-            margin-top:4px;
-            font-size:12px;
+            margin-top:3px;
             color:#94a3b8;
+            font-size:12px;
           ">
             รายการ
           </div>
@@ -240,127 +217,61 @@ POS.pages.inventoryMovement = async function(){
 
 
       <!-- =================================================
-           FILTER / SEARCH
+           SEARCH
            ================================================= -->
       <div class="card" style="
         margin-bottom:20px;
-        padding:18px;
       ">
 
         <div style="
           display:grid;
-          grid-template-columns:minmax(240px,1.7fr) minmax(170px,1fr) minmax(170px,1fr) auto;
-          gap:12px;
+          grid-template-columns:minmax(0,1fr) auto;
+          gap:14px;
           align-items:end;
         ">
 
           <div>
+
             <label style="
               display:block;
               margin-bottom:7px;
+              color:#475569;
               font-size:13px;
               font-weight:700;
-              color:#475569;
             ">
-              🔎 ค้นหา
+              🔎 ค้นหาสูตร
             </label>
 
             <input
-              id="posMovementSearch"
+              id="posInventoryRecipesSearch"
               type="text"
-              placeholder="ค้นหาวัตถุดิบ / SKU / เลขอ้างอิง"
+              placeholder="ค้นหาชื่อสูตร / รหัสสูตร"
               style="
                 width:100%;
-                box-sizing:border-box;
                 height:43px;
+                box-sizing:border-box;
                 padding:0 13px;
-                border:1px solid #d7dce2;
-                border-radius:10px;
-                background:#fff;
-                color:#1f2937;
+                border:1px solid #d7dee8;
+                border-radius:9px;
                 outline:none;
+                font-size:14px;
               "
             >
+
           </div>
-
-
-          <div>
-            <label style="
-              display:block;
-              margin-bottom:7px;
-              font-size:13px;
-              font-weight:700;
-              color:#475569;
-            ">
-              ประเภทการเคลื่อนไหว
-            </label>
-
-            <select
-              id="posMovementType"
-              style="
-                width:100%;
-                box-sizing:border-box;
-                height:43px;
-                padding:0 12px;
-                border:1px solid #d7dce2;
-                border-radius:10px;
-                background:#fff;
-                color:#1f2937;
-              "
-            >
-              <option value="">ทั้งหมด</option>
-              <option value="PURCHASE">รับเข้า</option>
-              <option value="SALE">ขาย / เบิก</option>
-              <option value="ADJUSTMENT">ปรับสต็อก</option>
-            </select>
-          </div>
-
-
-          <div>
-            <label style="
-              display:block;
-              margin-bottom:7px;
-              font-size:13px;
-              font-weight:700;
-              color:#475569;
-            ">
-              ช่วงวันที่
-            </label>
-
-            <input
-              id="posMovementDate"
-              type="date"
-              style="
-                width:100%;
-                box-sizing:border-box;
-                height:43px;
-                padding:0 12px;
-                border:1px solid #d7dce2;
-                border-radius:10px;
-                background:#fff;
-                color:#1f2937;
-              "
-            >
-          </div>
-
 
           <button
-            id="posMovementSearchBtn"
+            id="posInventoryRecipesRefreshBtn"
+            class="btn-secondary"
             type="button"
-            onclick="POS.inventoryMovementRender()"
             style="
-              height:43px;
-              padding:0 18px;
-              border:1px solid #d7dce2;
-              border-radius:10px;
-              background:#f8fafc;
-              color:#374151;
+              min-height:43px;
+              padding:0 15px;
+              border-radius:9px;
               font-weight:700;
-              cursor:pointer;
-              white-space:nowrap;
             "
           >
-            ค้นหา
+            🔄 รีเฟรช
           </button>
 
         </div>
@@ -369,7 +280,7 @@ POS.pages.inventoryMovement = async function(){
 
 
       <!-- =================================================
-           MOVEMENT LIST
+           RECIPE LIST
            ================================================= -->
       <div class="card" style="
         padding:0;
@@ -377,39 +288,41 @@ POS.pages.inventoryMovement = async function(){
       ">
 
         <div style="
+          padding:18px 18px 14px;
           display:flex;
           justify-content:space-between;
           align-items:center;
           gap:12px;
-          padding:18px 20px;
-          border-bottom:1px solid #eef1f4;
         ">
 
           <div>
+
             <div style="
               font-size:18px;
               font-weight:800;
               color:#1f2937;
             ">
-              📋 ประวัติการเคลื่อนไหว
+              📋 รายการสูตร
             </div>
 
             <div style="
               margin-top:4px;
-              font-size:13px;
               color:#94a3b8;
+              font-size:12px;
             ">
-              รายการรับเข้า / ลดสต็อก / ปรับยอด
+              จัดการสูตรและวัตถุดิบที่ใช้ในแต่ละเมนู
             </div>
+
           </div>
 
-          <div id="posMovementListCount" style="
+          <div id="posInventoryRecipesListCount" style="
             padding:7px 11px;
             border-radius:999px;
             background:#f8fafc;
             color:#64748b;
             font-size:12px;
             font-weight:700;
+            white-space:nowrap;
           ">
             0 รายการ
           </div>
@@ -430,105 +343,72 @@ POS.pages.inventoryMovement = async function(){
             <thead>
               <tr style="
                 background:#f8fafc;
-                border-bottom:1px solid #e5e7eb;
+                border-bottom:1px solid #e2e8f0;
               ">
 
                 <th style="
-                  padding:13px 12px;
+                  padding:12px;
                   text-align:left;
-                  font-size:12px;
-                  color:#64748b;
-                  font-weight:800;
                   white-space:nowrap;
+                  color:#475569;
+                  font-size:12px;
+                  font-weight:800;
                 ">
-                  วันที่ / เวลา
+                  รหัสสูตร
                 </th>
 
                 <th style="
-                  padding:13px 12px;
+                  padding:12px;
                   text-align:left;
-                  font-size:12px;
-                  color:#64748b;
-                  font-weight:800;
                   white-space:nowrap;
+                  color:#475569;
+                  font-size:12px;
+                  font-weight:800;
                 ">
-                  วัตถุดิบ
+                  ชื่อสูตร
                 </th>
 
                 <th style="
-                  padding:13px 12px;
+                  padding:12px;
                   text-align:center;
-                  font-size:12px;
-                  color:#64748b;
-                  font-weight:800;
                   white-space:nowrap;
+                  color:#475569;
+                  font-size:12px;
+                  font-weight:800;
                 ">
-                  ประเภท
+                  จำนวนวัตถุดิบ
                 </th>
 
                 <th style="
-                  padding:13px 12px;
-                  text-align:right;
-                  font-size:12px;
-                  color:#64748b;
-                  font-weight:800;
+                  padding:12px;
+                  text-align:center;
                   white-space:nowrap;
+                  color:#475569;
+                  font-size:12px;
+                  font-weight:800;
                 ">
-                  จำนวน
+                  สถานะ
                 </th>
 
                 <th style="
-                  padding:13px 12px;
-                  text-align:right;
-                  font-size:12px;
-                  color:#64748b;
-                  font-weight:800;
+                  padding:12px;
+                  text-align:center;
                   white-space:nowrap;
-                ">
-                  ก่อนปรับ
-                </th>
-
-                <th style="
-                  padding:13px 12px;
-                  text-align:right;
+                  color:#475569;
                   font-size:12px;
-                  color:#64748b;
                   font-weight:800;
-                  white-space:nowrap;
                 ">
-                  หลังปรับ
-                </th>
-
-                <th style="
-                  padding:13px 12px;
-                  text-align:left;
-                  font-size:12px;
-                  color:#64748b;
-                  font-weight:800;
-                  white-space:nowrap;
-                ">
-                  เลขอ้างอิง
-                </th>
-
-                <th style="
-                  padding:13px 12px;
-                  text-align:left;
-                  font-size:12px;
-                  color:#64748b;
-                  font-weight:800;
-                  white-space:nowrap;
-                ">
-                  หมายเหตุ
+                  จัดการ
                 </th>
 
               </tr>
             </thead>
 
 
-            <tbody id="posMovementTableBody">
+            <tbody id="posInventoryRecipesTableBody">
 
               <tr>
-                <td colspan="8" style="
+                <td colspan="5" style="
                   padding:60px 20px;
                   text-align:center;
                 ">
@@ -541,10 +421,10 @@ POS.pages.inventoryMovement = async function(){
                     display:flex;
                     align-items:center;
                     justify-content:center;
-                    background:#f1f5f9;
+                    background:#fff1f2;
                     font-size:25px;
                   ">
-                    📦
+                    🍳
                   </div>
 
                   <div style="
@@ -552,7 +432,7 @@ POS.pages.inventoryMovement = async function(){
                     font-weight:800;
                     color:#64748b;
                   ">
-                    ยังไม่มีข้อมูลการเคลื่อนไหว
+                    ยังไม่มีข้อมูลสูตร
                   </div>
 
                   <div style="
@@ -560,8 +440,7 @@ POS.pages.inventoryMovement = async function(){
                     font-size:13px;
                     color:#94a3b8;
                   ">
-                    เมื่อมีการรับเข้า เบิกออก หรือปรับสต็อก
-                    รายการจะแสดงที่หน้านี้
+                    กด “เพิ่มสูตร” เพื่อเริ่มสร้างสูตรอาหาร
                   </div>
 
                 </td>
@@ -578,6 +457,20 @@ POS.pages.inventoryMovement = async function(){
     </div>
   `;
 };
+
+
+POS.inventoryRecipesEscape = function(value){
+
+  return String(value ?? "")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
+
+};
+
+
 /* =====================================================
    RECIPES : LOAD
    ===================================================== */
@@ -593,100 +486,37 @@ POS.inventoryRecipesLoad = async function(){
     return;
   }
 
-  body.innerHTML = `
-    <tr>
-      <td colspan="5"
-          style="
-            padding:55px 20px;
-            text-align:center;
-            color:#94a3b8;
-          ">
-        ⏳ กำลังโหลดข้อมูลสูตร...
-      </td>
-    </tr>
-  `;
+  /* =====================================================
+     TEST 10 : 60 ROW MOCK DATA
+     - ไม่เรียก API
+     - สร้างข้อมูลสูตรทดสอบ 60 แถวโดยตรง
+     - ใช้ Recipes RENDER จริง
+     - จุดประสงค์: วัดการวาด/เลื่อนหน้า 60 แถว
+     ===================================================== */
 
-  try{
+  POS.inventoryRecipesMenus = [];
+  POS.inventoryRecipesIngredients = [];
 
-    const result =
-      await POS.api.recipesList();
+  POS.inventoryRecipesData = [];
 
-    if(
-      !result ||
-      result.success !== true
-    ){
-      throw new Error(
-        result?.error ||
-        result?.message ||
-        "ไม่สามารถโหลดข้อมูลสูตรได้"
-      );
-    }
+  for(let i = 1; i <= 60; i++){
 
-    const data =
-      result.data || {};
+    POS.inventoryRecipesData.push({
+      id: "TEST-RECIPE-" + i,
+      menu_id: "TEST-MENU-" + i,
+      menu_sku: "TEST" + String(i).padStart(3, "0"),
+      menu_name: "สูตรทดสอบ " + String(i).padStart(2, "0"),
+      ingredient_id: "TEST-ING-" + i,
+      ingredient_sku: "TING" + String(i).padStart(3, "0"),
+      ingredient_name: "วัตถุดิบทดสอบ " + String(i).padStart(2, "0"),
+      qty: 1,
+      base_unit: "ชิ้น",
+      is_active: 1
+    });
 
-    POS.inventoryRecipesData =
-      Array.isArray(data.recipes)
-        ? data.recipes
-        : [];
-
-    POS.inventoryRecipesMenus =
-      Array.isArray(data.menus)
-        ? data.menus
-        : [];
-
-    POS.inventoryRecipesIngredients =
-      Array.isArray(data.ingredients)
-        ? data.ingredients
-        : [];
-
-    POS.inventoryRecipesRender();
-
-  }catch(error){
-
-    console.error(
-      "inventoryRecipesLoad error:",
-      error
-    );
-
-    body.innerHTML = `
-      <tr>
-        <td colspan="5"
-            style="
-              padding:55px 20px;
-              text-align:center;
-            ">
-
-          <div style="
-            font-size:28px;
-            margin-bottom:8px;
-          ">
-            ⚠️
-          </div>
-
-          <div style="
-            font-size:15px;
-            font-weight:800;
-            color:#64748b;
-          ">
-            โหลดข้อมูลสูตรไม่สำเร็จ
-          </div>
-
-          <div style="
-            margin-top:6px;
-            font-size:13px;
-            color:#94a3b8;
-          ">
-            ${POS.inventoryRecipesEscape(
-              error?.message ||
-              "กรุณาลองใหม่อีกครั้ง"
-            )}
-          </div>
-
-        </td>
-      </tr>
-    `;
   }
+
+  POS.inventoryRecipesRender();
 
 };
 
@@ -701,7 +531,7 @@ POS.inventoryRecipesRender = function(){
 
   const body =
     document.getElementById(
-      "posMovementTableBody"
+      "posInventoryRecipesTableBody"
     );
 
   if(!body){
@@ -710,7 +540,7 @@ POS.inventoryRecipesRender = function(){
 
   const searchInput =
     document.getElementById(
-      "posMovementSearch"
+      "posInventoryRecipesSearch"
     );
 
   const keyword =
@@ -817,22 +647,22 @@ POS.inventoryRecipesRender = function(){
 
   const totalEl =
     document.getElementById(
-      "posMovementTotalCount"
+      "posInventoryRecipesTotal"
     );
 
   const activeEl =
     document.getElementById(
-      "posMovementPurchaseCount"
+      "posInventoryRecipesActive"
     );
 
   const ingredientEl =
     document.getElementById(
-      "posMovementSaleCount"
+      "posInventoryRecipesIngredients"
     );
 
   const listCountEl =
     document.getElementById(
-      "posMovementListCount"
+      "posInventoryRecipesListCount"
     );
 
 
@@ -1050,17 +880,17 @@ POS.inventoryMovementUpdateSummary = function(rows){
   };
 
   setText(
-    "posMovementTotalCount",
+    "posInventoryRecipesTotal",
     total
   );
 
   setText(
-    "posMovementPurchaseCount",
+    "posInventoryRecipesActive",
     purchase
   );
 
   setText(
-    "posMovementSaleCount",
+    "posInventoryRecipesIngredients",
     sale
   );
 
@@ -1070,7 +900,7 @@ POS.inventoryMovementUpdateSummary = function(rows){
   );
 
   setText(
-    "posMovementListCount",
+    "posInventoryRecipesListCount",
     `${total} รายการ`
   );
 };
@@ -1198,11 +1028,3 @@ POS.inventoryMovementEscape = function(value){
     .replaceAll('"',"&quot;")
     .replaceAll("'","&#039;");
 };
-
-/* =====================================================
-   PAGE 04 TEST ALIAS
-   ใช้ก้อน Movement เดิม 100% เพื่อทดสอบ
-   ไม่เปลี่ยน API / render / DOM / lifecycle ของ Movement
-   ===================================================== */
-POS.pages.inventoryRecipes = POS.pages.inventoryMovement;
-POS.inventoryRecipesLoad = POS.inventoryMovementLoad;
