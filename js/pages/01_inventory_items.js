@@ -7,10 +7,140 @@ POS.inventoryItemsData = [];
 POS.inventoryPurchaseUnitsData = [];
 
 /* =====================================================
+   FIRST LOAD CACHE / PREFETCH
+   เริ่มโหลดข้อมูลล่วงหน้าทันทีที่ API พร้อม
+   เพื่อให้การเปิดหน้า 01 ครั้งแรกไม่ต้องเริ่ม API ใหม่
+   และใช้ Promise เดิมถ้ากำลังโหลดอยู่
+   ===================================================== */
+POS.inventoryItemsPrefetchPromise = null;
+POS.inventoryItemsPrefetchReady = false;
+
+POS.inventoryItemsPrefetch = function(forceReload = false){
+
+  if(
+    !forceReload &&
+    POS.inventoryItemsPrefetchReady
+  ){
+    return Promise.resolve(true);
+  }
+
+  if(
+    !forceReload &&
+    POS.inventoryItemsPrefetchPromise
+  ){
+    return POS.inventoryItemsPrefetchPromise;
+  }
+
+  if(
+    !POS.api ||
+    typeof POS.api.ingredientsList !== "function" ||
+    typeof POS.api.purchaseUnitsList !== "function"
+  ){
+    return Promise.resolve(false);
+  }
+
+  const promise =
+    Promise.all([
+      POS.api.ingredientsList(),
+      POS.api.purchaseUnitsList()
+    ])
+    .then(function(results){
+
+      const ingredientResult = results[0];
+      const unitResult = results[1];
+
+      if(
+        !ingredientResult ||
+        ingredientResult.success !== true
+      ){
+        throw new Error(
+          ingredientResult?.error ||
+          ingredientResult?.message ||
+          "โหลดข้อมูลวัตถุดิบไม่สำเร็จ"
+        );
+      }
+
+      POS.inventoryItemsData =
+        Array.isArray(ingredientResult.data)
+          ? ingredientResult.data
+          : [];
+
+      POS.inventoryPurchaseUnitsData =
+        unitResult &&
+        unitResult.success === true &&
+        Array.isArray(unitResult.data)
+          ? unitResult.data
+          : [];
+
+      POS.inventoryItemsPrefetchReady = true;
+
+      return true;
+
+    })
+    .catch(function(error){
+
+      POS.inventoryItemsPrefetchPromise = null;
+      POS.inventoryItemsPrefetchReady = false;
+
+      throw error;
+
+    });
+
+  POS.inventoryItemsPrefetchPromise = promise;
+
+  return promise;
+
+};
+
+/* =====================================================
    STOCK PAGE 01 : INGREDIENTS
    ===================================================== */
 
 POS.pages.inventoryItems = async function(){
+
+  /*
+     IMPORTANT:
+     รอข้อมูลวัตถุดิบที่ prefetch ไว้ให้พร้อมก่อนส่ง HTML
+     กลับไปให้ Router เพื่อไม่ให้หน้า 01 ถูกสร้างก่อนข้อมูล
+     แล้วค่อยขยายความสูงของตารางภายหลัง
+
+     ลำดับใหม่:
+     API/PREFETCH พร้อม
+       -> Router ได้ HTML
+       -> ใส่ Page 01 ลง DOM
+       -> AUTO LOAD render ทันทีจาก cache
+       -> ความสูงของตารางถูกสร้างครั้งเดียว
+  */
+  try{
+
+    /*
+       สำคัญ: ห้ามสร้าง Page 01 ด้วย tbody ที่มีแค่แถว
+       "กำลังโหลด" แล้วค่อยเพิ่มรายการภายหลัง
+       เพราะ scroll container จะคำนวณความสูงจาก DOM ที่ยังสั้น
+       ทำให้เห็นรายการเหมือนทยอยมาเป็นชุด ๆ
+
+       ให้โหลดข้อมูลชุดเดียวกับปุ่มรีเฟรชให้เสร็จก่อน
+       แล้วค่อยส่ง HTML ของ Page 01 เข้า Router
+    */
+    if(
+      POS.api &&
+      typeof POS.inventoryItemsPrefetch === "function"
+    ){
+      await POS.inventoryItemsPrefetch(true);
+    }
+
+  }catch(error){
+
+    /*
+       ถ้า prefetch มีปัญหา ไม่ทำให้เปิดหน้าไม่ได้
+       AUTO LOAD ด้านล่างจะลองโหลดข้อมูลอีกครั้งหลัง DOM พร้อม
+    */
+    console.warn(
+      "เตรียมข้อมูลวัตถุดิบก่อนสร้างหน้าไม่สำเร็จ:",
+      error
+    );
+
+  }
 
   return `
     <div class="inventory-subpage">
@@ -261,7 +391,7 @@ POS.pages.inventoryItems = async function(){
           <button
             type="button"
             class="btn-secondary"
-            onclick="POS.inventoryItemsLoad()"
+            onclick="POS.inventoryItemsLoad(true)"
             style="
               white-space:nowrap;
               padding:11px 15px;
@@ -280,6 +410,7 @@ POS.pages.inventoryItems = async function(){
           style="
             width:100%;
             overflow-x:auto;
+            overflow-y:hidden;
           "
         >
 
@@ -1279,7 +1410,7 @@ POS.inventoryItemsSave = async function(){
 
     POS.inventoryItemsCloseModal();
 
-    await POS.inventoryItemsLoad();
+    await POS.inventoryItemsLoad(true);
 
     if(isEdit){
 
@@ -1340,7 +1471,7 @@ POS.inventoryItemsSave = async function(){
    LOAD
    ===================================================== */
 
-POS.inventoryItemsLoad = async function(){
+POS.inventoryItemsLoad = async function(forceReload = false){
 
   const body =
     document.getElementById(
@@ -1370,53 +1501,46 @@ POS.inventoryItemsLoad = async function(){
 
   try{
 
-    const result =
-      await POS.api.ingredientsList();
+    /*
+      ใช้ข้อมูลที่ prefetch ไว้ตั้งแต่ก่อนเปิดหน้า 01
+      ถ้ายังโหลดไม่เสร็จ ให้รอ Promise เดิม
+      จึงไม่ยิง API ชุดที่สองซ้ำเมื่อผู้ใช้เพิ่งเปิดหน้า
+    */
+    if(forceReload){
+      POS.inventoryItemsPrefetchPromise = null;
+      POS.inventoryItemsPrefetchReady = false;
+    }
 
+    let prefetched = false;
 
     if(
-      !result ||
-      result.success !== true
+      POS.inventoryItemsPrefetchPromise ||
+      POS.inventoryItemsPrefetchReady
     ){
+      prefetched =
+        await POS.inventoryItemsPrefetch(forceReload);
+    }else{
+      prefetched =
+        await POS.inventoryItemsPrefetch(false);
+    }
+
+    if(!prefetched){
       throw new Error(
-        result?.error ||
-        result?.message ||
-        "โหลดข้อมูลวัตถุดิบไม่สำเร็จ"
+        "ระบบกำลังเตรียมการเชื่อมต่อฐานข้อมูล กรุณาลองใหม่อีกครั้ง"
       );
     }
 
-
-    POS.inventoryItemsData =
-      Array.isArray(result.data)
-        ? result.data
-        : [];
-
-
-    // โหลดหน่วยซื้อสำหรับใช้แสดงสต็อกเป็นหน่วยที่อ่านง่าย
-    // ถ้าโหลดหน่วยซื้อไม่ได้ ให้หน้าสต็อกยังทำงานและแสดงหน่วยหลักตามเดิม
-    try{
-
-      const unitResult =
-        await POS.api.purchaseUnitsList();
-
-      POS.inventoryPurchaseUnitsData =
-        unitResult && unitResult.success === true && Array.isArray(unitResult.data)
-          ? unitResult.data
-          : [];
-
-    }catch(unitError){
-
-      console.warn(
-        "โหลดหน่วยซื้อสำหรับแสดงสต็อกไม่สำเร็จ:",
-        unitError
-      );
-
-      POS.inventoryPurchaseUnitsData = [];
-
-    }
-
-
+    /*
+      ข้อมูลวัตถุดิบ + หน่วยซื้อพร้อมแล้ว
+      render ครั้งเดียวหลัง DOM ของหน้า 01 ถูกสร้าง
+      ลดการเปลี่ยนความสูงของตารางระหว่างที่ผู้ใช้เริ่มเลื่อน
+    */
     POS.inventoryItemsRender();
+
+
+    if(typeof POS.inventoryItemsFixScroll === "function"){
+      POS.inventoryItemsFixScroll();
+    }
 
   }catch(error){
 
@@ -1447,6 +1571,141 @@ POS.inventoryItemsLoad = async function(){
 
   }
 
+};
+
+
+/* =====================================================
+   FIRST OPEN SCROLL FIX
+   บังคับให้ scroll container คำนวณความสูงใหม่หลัง
+   Page 01 ถูกสร้างแบบ SPA โดยไม่ต้องกด Refresh
+   ===================================================== */
+POS.inventoryItemsFixScroll = function(){
+
+  const settle = function(){
+
+    const page =
+      document.querySelector(".inventory-subpage");
+
+    if(!page){
+      return;
+    }
+
+    const candidates = [];
+    let node = page;
+
+    while(node && node !== document.body){
+      candidates.push(node);
+      node = node.parentElement;
+    }
+
+    if(document.scrollingElement){
+      candidates.push(document.scrollingElement);
+    }
+
+    candidates.push(document.documentElement);
+
+    const seen = new Set();
+
+    candidates.forEach(function(el){
+
+      if(!el || seen.has(el)){
+        return;
+      }
+
+      seen.add(el);
+
+      const style =
+        window.getComputedStyle(el);
+
+      const overflowY =
+        String(style.overflowY || "").toLowerCase();
+
+      const isScrollContainer =
+        overflowY === "auto" ||
+        overflowY === "scroll" ||
+        el === document.scrollingElement;
+
+      if(!isScrollContainer){
+        return;
+      }
+
+      /* บังคับ layout calculation */
+      void el.offsetHeight;
+      void el.scrollHeight;
+      void el.clientHeight;
+
+      /*
+        Safari/iOS บางครั้งค้าง scroll geometry ของ
+        fixed/SPA container จาก frame ก่อนหน้า
+      */
+      const originalOverflowY =
+        el.style.overflowY;
+
+      el.style.overflowY = "hidden";
+      void el.offsetHeight;
+      void el.scrollHeight;
+      el.style.overflowY =
+        originalOverflowY || "auto";
+
+      /* ให้ iOS ใช้ touch scrolling กับ container เดิม */
+      el.style.webkitOverflowScrolling = "touch";
+
+      void el.offsetHeight;
+      void el.scrollHeight;
+    });
+
+    window.dispatchEvent(
+      new Event("resize")
+    );
+
+    /* สะกิด scroll geometry โดยไม่เปลี่ยนตำแหน่งผู้ใช้ */
+    const scrollHost =
+      candidates.find(function(el){
+
+        if(!el){
+          return false;
+        }
+
+        if(el === document.scrollingElement){
+          return true;
+        }
+
+        const style =
+          window.getComputedStyle(el);
+
+        return (
+          style.overflowY === "auto" ||
+          style.overflowY === "scroll"
+        );
+      });
+
+    if(scrollHost){
+      const currentTop =
+        scrollHost.scrollTop;
+
+      void scrollHost.scrollHeight;
+      scrollHost.scrollTop = currentTop;
+    }
+  };
+
+  if(typeof requestAnimationFrame === "function"){
+
+    requestAnimationFrame(function(){
+      settle();
+
+      requestAnimationFrame(function(){
+        settle();
+      });
+    });
+
+  }else{
+    settle();
+  }
+
+  /* มือถือบางเครื่องเปลี่ยน viewport หลัง frame แรก */
+  setTimeout(settle, 120);
+  setTimeout(settle, 350);
+  setTimeout(settle, 700);
 };
 
 
@@ -2117,7 +2376,7 @@ POS.inventoryItemsDelete = async function(id){
     }
 
 
-    await POS.inventoryItemsLoad();
+    await POS.inventoryItemsLoad(true);
 
     POS.inventoryItemsShowSuccess({
       title:"ลบวัตถุดิบเรียบร้อย",
@@ -2139,6 +2398,53 @@ POS.inventoryItemsDelete = async function(id){
   }
 
 };
+
+
+/* =====================================================
+   START PREFETCH
+   เริ่มโหลดข้อมูลล่วงหน้าโดยไม่รบกวนหน้าอื่น
+   ถ้า API ยังไม่พร้อม จะลองใหม่ช่วงสั้น ๆ
+   ===================================================== */
+(function(){
+
+  let attempts = 0;
+  const maxAttempts = 10;
+
+  const start = function(){
+
+    if(
+      POS.inventoryItemsPrefetchReady ||
+      POS.inventoryItemsPrefetchPromise
+    ){
+      return;
+    }
+
+    if(
+      POS.api &&
+      typeof POS.api.ingredientsList === "function" &&
+      typeof POS.api.purchaseUnitsList === "function"
+    ){
+      POS.inventoryItemsPrefetch(false)
+        .catch(function(error){
+          console.warn(
+            "เตรียมข้อมูลวัตถุดิบล่วงหน้าไม่สำเร็จ:",
+            error
+          );
+        });
+      return;
+    }
+
+    attempts++;
+
+    if(attempts < maxAttempts){
+      setTimeout(start, 100);
+    }
+
+  };
+
+  setTimeout(start, 0);
+
+})();
 
 
 /* =====================================================
@@ -2175,9 +2481,17 @@ POS.inventoryItemsDelete = async function(id){
 
     loadingTableBody = tableBody;
 
-    Promise.resolve(
-      POS.inventoryItemsLoad()
-    )
+    /*
+       Page 01 ถูกสร้างหลังข้อมูลโหลดครบแล้ว
+       จึงไม่ต้องเริ่มโหลด API ซ้ำตรงนี้
+       render เพียงครั้งเดียวเหมือนผลลัพธ์หลังรีเฟรช
+    */
+    Promise.resolve().then(function(){
+      POS.inventoryItemsRender();
+      if(typeof POS.inventoryItemsFixScroll === "function"){
+        POS.inventoryItemsFixScroll();
+      }
+    })
     .catch(function(error){
 
       console.error(
@@ -2210,9 +2524,31 @@ POS.inventoryItemsDelete = async function(id){
   if(document.body){
 
     const observer =
-      new MutationObserver(function(){
+      new MutationObserver(function(mutations){
 
-        loadWhenReady();
+        for(const mutation of mutations){
+
+          if(!mutation.addedNodes || !mutation.addedNodes.length){
+            continue;
+          }
+
+          for(const node of mutation.addedNodes){
+
+            if(
+              node &&
+              node.nodeType === 1 &&
+              (
+                node.id === "inventoryItemsTableBody" ||
+                node.querySelector?.("#inventoryItemsTableBody")
+              )
+            ){
+              loadWhenReady();
+              return;
+            }
+
+          }
+
+        }
 
       });
 

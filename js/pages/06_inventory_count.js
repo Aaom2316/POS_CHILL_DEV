@@ -421,9 +421,8 @@ POS.pages.inventoryCount = async function(){
   `;
 
   /*
-   * เมื่อเปิดหน้า ตรวจนับจากเมนู โดยไฟล์ JS ถูกโหลดมาก่อนแล้ว
-   * ให้เรียก init หลัง DOM ของหน้านี้ถูกใส่เข้าหน้าเว็บแล้ว
-   * เพื่อโหลดข้อมูลทันทีโดยไม่ต้องกดรีโหลดหน้าเว็บ
+   * เรียก Init หลังจาก HTML ของหน้า 06 ถูกส่งกลับแล้ว
+   * ใช้ setTimeout เพียง 1 ครั้ง เพื่อรอให้ DOM ถูกใส่เข้าหน้าเว็บก่อน
    */
   setTimeout(function(){
     if(typeof POS.inventoryCountInit === "function"){
@@ -572,6 +571,8 @@ POS.inventoryCountLoad = async function(){
         ? unitResult.data
         : [];
 
+    POS.stockCountBuildUnitsIndex();
+
 
     POS.stockCountData =
       ingredients
@@ -656,80 +657,60 @@ POS.inventoryCountLoad = async function(){
    COUNT UNIT HELPERS
    ===================================================== */
 
-POS.stockCountGetUnits = function(item){
+POS.stockCountUnitsByIngredient = Object.create(null);
 
-  const allUnits =
-    Array.isArray(POS.stockCountUnitsData)
-      ? POS.stockCountUnitsData
-      : [];
+POS.stockCountBuildUnitsIndex = function(){
+  const allUnits = Array.isArray(POS.stockCountUnitsData)
+    ? POS.stockCountUnitsData
+    : [];
 
+  const index = Object.create(null);
 
-  const units =
-    allUnits
-      .filter(unit => {
+  allUnits.forEach(unit => {
+    if(!unit) return;
 
-        if(!unit){
-          return false;
-        }
+    const active =
+      unit.active === true ||
+      String(unit.active).toUpperCase() === "TRUE";
 
-        const sameIngredient =
-          String(unit.ingredient_id || "") ===
-          String(item.id || "");
+    if(!active) return;
 
-        const sameSku =
-          !sameIngredient &&
-          String(unit.ingredient_sku || unit.sku || "")
-            .toLowerCase() ===
-          String(item.sku || "")
-            .toLowerCase();
+    const ingredientId = String(unit.ingredient_id || "");
+    const sku = String(unit.ingredient_sku || unit.sku || "").toLowerCase();
+    const multiple = Number(unit.multiple);
 
-        const active =
-          unit.active === true ||
-          String(unit.active).toUpperCase() === "TRUE";
+    const normalized = {
+      id: unit.id,
+      unit_name: unit.unit_name || unit.name || "",
+      size: Number.isFinite(multiple) && multiple > 0 ? multiple : 1
+    };
 
-        return active &&
-          (sameIngredient || sameSku);
-      })
-      .map(unit => {
+    if(!normalized.unit_name || normalized.size <= 0) return;
 
-        const multiple =
-          Number(unit.multiple);
+    if(ingredientId){
+      (index["id:" + ingredientId] ||= []).push(normalized);
+    }
 
-        return {
-          id:
-            unit.id,
+    if(sku){
+      (index["sku:" + sku] ||= []).push(normalized);
+    }
+  });
 
-          unit_name:
-            unit.unit_name ||
-            unit.name ||
-            "",
+  Object.keys(index).forEach(key => {
+    index[key].sort((a,b) => b.size - a.size);
+  });
 
-          size:
-            Number.isFinite(multiple) &&
-            multiple > 0
-              ? multiple
-              : 1
-        };
-
-      })
-      .filter(unit =>
-        unit.unit_name &&
-        unit.size > 0
-      );
-
-
-  /*
-   * เรียงจากหน่วยใหญ่ -> เล็ก
-   */
-  units.sort(
-    (a,b) =>
-      b.size - a.size
-  );
-
-
-  return units;
+  POS.stockCountUnitsByIngredient = index;
 };
 
+POS.stockCountGetUnits = function(item){
+  const index = POS.stockCountUnitsByIngredient || Object.create(null);
+  const byId = index["id:" + String(item?.id || "")] || [];
+  if(byId.length) return byId.slice();
+
+  const bySku = index["sku:" + String(item?.sku || "").toLowerCase()] || [];
+  return bySku.slice();
+};
 
 POS.stockCountBuildCountUnits = function(item){
 
@@ -943,6 +924,8 @@ POS.stockCountFormatCountable = function(
    RENDER
    ===================================================== */
 
+POS.stockCountRenderToken = 0;
+
 POS.inventoryCountRender = function(){
 
   const body =
@@ -1110,8 +1093,9 @@ POS.inventoryCountRender = function(){
   }
 
 
-  body.innerHTML =
-    items.map(item => {
+  const renderToken = ++POS.stockCountRenderToken;
+
+  const renderItem = item => {
 
       const hasCount =
         item.counted_qty !== null &&
@@ -1531,21 +1515,53 @@ POS.inventoryCountRender = function(){
         </tr>
       `;
 
-    }).join("");
+    };
+
+  /* Render in small chunks so iPad does not block on one huge DOM update. */
+  body.innerHTML = "";
+
+  const CHUNK_SIZE = 20;
+  let chunkIndex = 0;
+
+  const renderChunk = () => {
+    if(renderToken !== POS.stockCountRenderToken){
+      return;
+    }
+
+    const endIndex = Math.min(
+      chunkIndex + CHUNK_SIZE,
+      items.length
+    );
+
+    let chunkHtml = "";
+    for(; chunkIndex < endIndex; chunkIndex++){
+      chunkHtml += renderItem(items[chunkIndex]);
+    }
+
+    body.insertAdjacentHTML("beforeend", chunkHtml);
+
+    if(chunkIndex < items.length){
+      requestAnimationFrame(renderChunk);
+    }
+  };
+
+  requestAnimationFrame(renderChunk);
 
 
-  body
-    .querySelectorAll(
-      "input[data-stock-count-id]"
-    )
-    .forEach(input => {
+  body.addEventListener(
+    "input",
+    function(event){
 
-      input.addEventListener(
-        "input",
-        function(){
+          const input = event.target?.closest(
+            "input[data-stock-count-id]"
+          );
+
+          if(!input || !body.contains(input)){
+            return;
+          }
 
           const id =
-            this.getAttribute(
+            input.getAttribute(
               "data-stock-count-id"
             );
 
@@ -1564,7 +1580,7 @@ POS.inventoryCountRender = function(){
 
 
           const row =
-            this.closest("tr");
+            input.closest("tr");
 
           if(!row){
             return;
@@ -1727,8 +1743,6 @@ POS.inventoryCountRender = function(){
 
         }
       );
-
-    });
 
 };
 
@@ -2362,7 +2376,6 @@ POS.inventoryCountSave = async function(){
      * กันการผูก event ซ้ำ หากเปิดหน้าเดิมหลายครั้ง
      */
     if(body.dataset.stockCountEventsBound === "1"){
-      POS.inventoryCountLoad();
       return;
     }
 
@@ -2424,7 +2437,5 @@ POS.inventoryCountSave = async function(){
 
   };
 
-
-  POS.inventoryCountInit();
 
 })();

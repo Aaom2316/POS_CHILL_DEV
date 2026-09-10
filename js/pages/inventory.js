@@ -14,6 +14,7 @@ POS.pages.inventory = async function(){
            ================================================= -->
 
       <div
+        class="inventory-menu-grid"
         style="
           display:grid;
           grid-template-columns:repeat(3, minmax(0, 1fr));
@@ -322,13 +323,22 @@ POS.openInventorySubPage = async function(pageName){
 
   try{
 
+    /*
+     * สร้าง HTML ของหน้าที่ต้องการก่อน
+     */
     const html = await page();
 
     /*
-     * หา container หลักของหน้าปัจจุบัน
-     * โดยใช้ element ที่มี inventory-page / inventory-subpage
+     * ใช้พื้นที่แสดงผลหลักของระบบก่อน
+     * #pageContent คือ scroll container หลักของระบบ
      */
+    const content =
+      document.querySelector("#pageContent");
 
+    /*
+     * ถ้าอยู่ในหน้า Stock อยู่แล้ว
+     * ให้แทนเฉพาะ inventory-page / inventory-subpage
+     */
     const current =
       document.querySelector(
         ".inventory-page, .inventory-subpage"
@@ -338,31 +348,88 @@ POS.openInventorySubPage = async function(pageName){
 
       current.outerHTML = html;
 
-      return;
+    }else if(content){
+
+      /*
+       * กรณีไม่มีหน้า Stock เดิม
+       * ให้ใส่ลงในพื้นที่หลักโดยตรง
+       */
+      content.innerHTML = html;
+
+    }else{
+
+      /*
+       * fallback เดิม เผื่อระบบบางหน้ามีโครงสร้างต่างกัน
+       */
+      const fallback =
+        document.querySelector(
+          "#app, #mainContent, .main-content, .content"
+        );
+
+      if(fallback){
+
+        fallback.innerHTML = html;
+
+      }else{
+
+        console.error(
+          "ไม่พบพื้นที่สำหรับแสดงหน้า Stock"
+        );
+
+        return;
+      }
     }
 
     /*
-     * fallback:
-     * ถ้าไม่พบ ให้หาพื้นที่ content หลัก
+     * =================================================
+     * PAGE 01 : วัตถุดิบ
+     * =================================================
+     *
+     * หลังจาก HTML เข้า DOM แล้ว
+     * สั่งโหลดข้อมูลโดยตรง ไม่รอ MutationObserver
      */
+    if(
+      pageName === "inventoryItems" &&
+      typeof POS.inventoryItemsLoad === "function"
+    ){
 
-    const content =
-      document.querySelector(
-        "#app, #mainContent, .main-content, .content"
-      );
+      /*
+       * รอให้ browser สร้าง layout ของหน้าใหม่ก่อน
+       */
+      await new Promise(function(resolve){
 
-    if(content){
+        requestAnimationFrame(function(){
 
-      content.innerHTML = html;
+          requestAnimationFrame(resolve);
 
-      return;
+        });
+
+      });
+
+      /*
+       * โหลดข้อมูลวัตถุดิบโดยตรง
+       */
+      await POS.inventoryItemsLoad();
+
+      /*
+       * ให้ scroll container คำนวณความสูงใหม่
+       */
+      const scrollHost =
+        document.querySelector("#pageContent");
+
+      if(scrollHost){
+
+        void scrollHost.offsetHeight;
+
+      }
+
     }
 
-    console.error(
-      "ไม่พบพื้นที่สำหรับแสดงหน้า Stock"
-    );
-
   }catch(error){
+
+    if(pageName === "inventoryRecipes"){
+      POS.inventoryRecipesOpening = false;
+    }
 
     console.error(
       "เปิดหน้า Stock ไม่สำเร็จ:",
