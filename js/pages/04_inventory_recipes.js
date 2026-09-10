@@ -3,11 +3,98 @@ POS.pages = POS.pages || {};
 
 /* =====================================================
    STOCK PAGE 04 : RECIPES
-   UI ONLY — ยังไม่ดึงข้อมูล
+   UI + MOCK DATA — ยังไม่ดึงข้อมูลจริง
    โครงสร้าง UI ยึด Stock Page 05 : Movement
    ===================================================== */
 
 POS.pages.inventoryRecipes = async function(){
+
+  /* =====================================================
+     MOCK DATA TEST — ยังไม่ใช้ API
+     สร้างข้อมูลจำลอง 100 แถวหลัง DOM ถูกสร้าง
+     ===================================================== */
+  setTimeout(function(){
+    const tbody = document.getElementById("posInventoryRecipesTableBody");
+    if(!tbody) return;
+
+    const rows = Array.from({length:100}, function(_, i){
+      const n = i + 1;
+      const active = (n % 7 !== 0);
+      const ingredients = 2 + (n % 6);
+
+      return `
+        <tr style="border-bottom:1px solid #eef1f4;">
+          <td style="
+            padding:13px 12px;
+            font-weight:700;
+            color:#334155;
+            white-space:nowrap;
+          ">REC-${String(n).padStart(3,"0")}</td>
+
+          <td style="
+            padding:13px 12px;
+            color:#334155;
+            white-space:nowrap;
+          ">สูตรทดสอบรายการที่ ${n}</td>
+
+          <td style="
+            padding:13px 12px;
+            text-align:center;
+            color:#475569;
+            white-space:nowrap;
+          ">${ingredients}</td>
+
+          <td style="
+            padding:13px 12px;
+            white-space:nowrap;
+          ">
+            <span style="
+              display:inline-block;
+              padding:5px 10px;
+              border-radius:999px;
+              font-size:12px;
+              font-weight:700;
+              background:${active ? "#dcfce7" : "#fee2e2"};
+              color:${active ? "#166534" : "#991b1b"};
+            ">
+              ${active ? "ใช้งาน" : "ปิดใช้งาน"}
+            </span>
+          </td>
+
+          <td style="
+            padding:13px 12px;
+            white-space:nowrap;
+          ">
+            <button
+              type="button"
+              style="
+                border:1px solid #e5e7eb;
+                background:#fff;
+                border-radius:8px;
+                padding:7px 11px;
+                font-size:13px;
+                font-weight:700;
+                color:#334155;
+              "
+            >⚙️ จัดการ</button>
+          </td>
+        </tr>
+      `;
+    }).join("");
+
+    tbody.innerHTML = rows;
+
+    const total = document.getElementById("posInventoryRecipesTotal");
+    const active = document.getElementById("posInventoryRecipesActive");
+    const ingredients = document.getElementById("posInventoryRecipesIngredients");
+    const count = document.getElementById("posInventoryRecipesListCount");
+
+    if(total) total.textContent = "100";
+    if(active) active.textContent = String(rows.match(/ใช้งาน/g)?.length || 0);
+    if(ingredients) ingredients.textContent = "32";
+    if(count) count.textContent = "100 รายการ";
+  }, 0);
+
   return `
     <div class="inventory-subpage">
 
