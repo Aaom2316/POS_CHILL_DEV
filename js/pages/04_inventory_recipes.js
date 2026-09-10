@@ -13,34 +13,72 @@ POS.pages.inventoryRecipes = async function(){
 
 
   setTimeout(function(){
-    const tbody = document.getElementById("posInventoryRecipesTableBody");
-    if(!tbody) return;
+    const host = document.getElementById("posInventoryRecipesRows");
+    if(!host) return;
 
     const mockCount = 70 + (new Date().getSeconds() % 31);
 
-    tbody.innerHTML = Array.from({length:mockCount}, function(_, i){
+    /*
+     * TEST/FIX:
+     * ตัด <table>/<tbody> ออกจากการวาดรายการ
+     * แล้วใช้ CSS Grid แทน เพื่อแยกปัญหา Safari/iPad table layout
+     * ออกจากส่วนอื่นของหน้า
+     */
+    host.innerHTML = Array.from({length:mockCount}, function(_, i){
       const n = i + 1;
       const active = n % 7 !== 0;
 
       return `
-        <tr style="border-bottom:1px solid #eef1f4;">
-          <td style="padding:13px 12px;white-space:nowrap;font-weight:700;color:#334155;">REC-${String(n).padStart(3,"0")}</td>
-          <td style="padding:13px 12px;white-space:nowrap;color:#334155;">สูตรทดสอบ ${n}</td>
-          <td style="padding:13px 12px;white-space:nowrap;color:#475569;">${["อาหาร","เครื่องดื่ม","ของหวาน"][n%3]}</td>
-          <td style="padding:13px 12px;text-align:right;white-space:nowrap;color:#475569;">${2 + n%6}</td>
-          <td style="padding:13px 12px;white-space:nowrap;color:#475569;">รายการ</td>
-          <td style="padding:13px 12px;white-space:nowrap;">
-            <span style="display:inline-block;padding:5px 10px;border-radius:999px;font-size:12px;font-weight:700;background:${active ? "#dcfce7" : "#fee2e2"};color:${active ? "#166534" : "#991b1b"};">
-              ${active ? "ใช้งาน" : "ปิดใช้งาน"}
-            </span>
-          </td>
-          <td style="padding:13px 12px;white-space:nowrap;color:#64748b;">10/09/2026</td>
-          <td style="padding:13px 12px;white-space:nowrap;">
-            <button type="button" style="padding:7px 11px;border:1px solid #d7dce2;border-radius:8px;background:#fff;font-weight:700;color:#374151;">
-              ⚙️ จัดการ
-            </button>
-          </td>
-        </tr>`;
+        <div style="
+          display:grid;
+          grid-template-columns:140px minmax(240px,1.5fr) 110px 110px 120px 110px 120px 120px;
+          align-items:center;
+          min-width:1050px;
+          min-height:48px;
+          box-sizing:border-box;
+          border-bottom:1px solid #eef1f4;
+          background:#fff;
+        ">
+          <div style="padding:13px 12px;white-space:nowrap;font-weight:700;color:#334155;">
+            REC-${String(n).padStart(3,"0")}
+          </div>
+          <div style="padding:13px 12px;white-space:nowrap;color:#334155;">
+            สูตรทดสอบ ${n}
+          </div>
+          <div style="padding:13px 12px;white-space:nowrap;color:#475569;">
+            ${["อาหาร","เครื่องดื่ม","ของหวาน"][n%3]}
+          </div>
+          <div style="padding:13px 12px;text-align:right;white-space:nowrap;color:#475569;">
+            ${2 + n%6}
+          </div>
+          <div style="padding:13px 12px;white-space:nowrap;color:#475569;">
+            รายการ
+          </div>
+          <div style="padding:13px 12px;white-space:nowrap;">
+            <span style="
+              display:inline-block;
+              padding:5px 10px;
+              border-radius:999px;
+              font-size:12px;
+              font-weight:700;
+              background:${active ? "#dcfce7" : "#fee2e2"};
+              color:${active ? "#166534" : "#991b1b"};
+            ">${active ? "ใช้งาน" : "ปิดใช้งาน"}</span>
+          </div>
+          <div style="padding:13px 12px;white-space:nowrap;color:#64748b;">
+            10/09/2026
+          </div>
+          <div style="padding:13px 12px;white-space:nowrap;">
+            <button type="button" style="
+              padding:7px 11px;
+              border:1px solid #d7dce2;
+              border-radius:8px;
+              background:#fff;
+              font-weight:700;
+              color:#374151;
+            ">⚙️ จัดการ</button>
+          </div>
+        </div>`;
     }).join("");
 
     const total = document.getElementById("posInventoryRecipesTotal");
@@ -456,116 +494,37 @@ POS.pages.inventoryRecipes = async function(){
 
         <div style="
           overflow-x:auto;
+          overflow-y:visible;
+          -webkit-overflow-scrolling:touch;
         ">
-
-          <table style="
-            width:100%;
-            border-collapse:collapse;
-            min-width:980px;
+          <div style="
+            min-width:1050px;
+            background:#fff;
           ">
+            <div style="
+              display:grid;
+              grid-template-columns:140px minmax(240px,1.5fr) 110px 110px 120px 110px 120px 120px;
+              align-items:center;
+              min-height:44px;
+              box-sizing:border-box;
+              background:#f8fafc;
+              border-bottom:1px solid #e5e7eb;
+              font-size:12px;
+              color:#64748b;
+              font-weight:800;
+            ">
+              <div style="padding:13px 12px;white-space:nowrap;">วันที่ / เวลา</div>
+              <div style="padding:13px 12px;white-space:nowrap;">วัตถุดิบ</div>
+              <div style="padding:13px 12px;text-align:center;white-space:nowrap;">ประเภท</div>
+              <div style="padding:13px 12px;text-align:right;white-space:nowrap;">วัตถุดิบ</div>
+              <div style="padding:13px 12px;text-align:right;white-space:nowrap;">สถานะ</div>
+              <div style="padding:13px 12px;text-align:right;white-space:nowrap;">อัปเดต</div>
+              <div style="padding:13px 12px;white-space:nowrap;">เลขอ้างอิง</div>
+              <div style="padding:13px 12px;white-space:nowrap;">หมายเหตุ</div>
+            </div>
 
-            <thead>
-              <tr style="
-                background:#f8fafc;
-                border-bottom:1px solid #e5e7eb;
-              ">
-
-                <th style="
-                  padding:13px 12px;
-                  text-align:left;
-                  font-size:12px;
-                  color:#64748b;
-                  font-weight:800;
-                  white-space:nowrap;
-                ">
-                  วันที่ / เวลา
-                </th>
-
-                <th style="
-                  padding:13px 12px;
-                  text-align:left;
-                  font-size:12px;
-                  color:#64748b;
-                  font-weight:800;
-                  white-space:nowrap;
-                ">
-                  วัตถุดิบ
-                </th>
-
-                <th style="
-                  padding:13px 12px;
-                  text-align:center;
-                  font-size:12px;
-                  color:#64748b;
-                  font-weight:800;
-                  white-space:nowrap;
-                ">
-                  ประเภท
-                </th>
-
-                <th style="
-                  padding:13px 12px;
-                  text-align:right;
-                  font-size:12px;
-                  color:#64748b;
-                  font-weight:800;
-                  white-space:nowrap;
-                ">
-                  วัตถุดิบ
-                </th>
-
-                <th style="
-                  padding:13px 12px;
-                  text-align:right;
-                  font-size:12px;
-                  color:#64748b;
-                  font-weight:800;
-                  white-space:nowrap;
-                ">
-                  สถานะ
-                </th>
-
-                <th style="
-                  padding:13px 12px;
-                  text-align:right;
-                  font-size:12px;
-                  color:#64748b;
-                  font-weight:800;
-                  white-space:nowrap;
-                ">
-                  อัปเดต
-                </th>
-
-                <th style="
-                  padding:13px 12px;
-                  text-align:left;
-                  font-size:12px;
-                  color:#64748b;
-                  font-weight:800;
-                  white-space:nowrap;
-                ">
-                  เลขอ้างอิง
-                </th>
-
-                <th style="
-                  padding:13px 12px;
-                  text-align:left;
-                  font-size:12px;
-                  color:#64748b;
-                  font-weight:800;
-                  white-space:nowrap;
-                ">
-                  หมายเหตุ
-                </th>
-
-              </tr>
-            </thead>
-
-
-            <tbody id="posInventoryRecipesTableBody"></tbody>
-
-          </table>
-
+            <div id="posInventoryRecipesRows"></div>
+          </div>
         </div>
 
       </div>
