@@ -1,17 +1,3 @@
-/*
- * =====================================================
- * TEST: FRESH #pageContent FOR PAGE 04 RECIPES
- * วันที่ 2026-09-10
- *
- * เป้าหมาย:
- * สร้าง #pageContent ใหม่เฉพาะตอนเปิด inventoryRecipes
- * เพื่อพิสูจน์ว่าอาการ iPad ที่หายหลัง Refresh
- * เกิดจากการ reuse scroll container เดิมหรือไม่
- *
- * หน้าอื่นไม่เปลี่ยน logic
- * =====================================================
- */
-
 POS.pages.inventory = async function(){
 
   return `
@@ -338,70 +324,37 @@ POS.openInventorySubPage = async function(pageName){
   try{
 
     /*
-     * RECIPES เปิดแบบ Dynamic บน iPad/Safari
-     * ให้ Router เป็นผู้สั่ง LOAD หลังจากหน้าใหม่ settle
-     * เพื่อไม่ให้ MutationObserver โหลดตารางใน frame แรก
-     */
-    if(pageName === "inventoryRecipes"){
-      POS.inventoryRecipesOpening = true;
-    }
-
-    /*
      * สร้าง HTML ของหน้าที่ต้องการก่อน
      */
     const html = await page();
 
     /*
-     * ใช้พื้นที่แสดงผลหลักของระบบ
+     * ใช้พื้นที่แสดงผลหลักของระบบก่อน
      * #pageContent คือ scroll container หลักของระบบ
-     *
-     * TEST:
-     * เฉพาะ PAGE 04 สูตร ให้สร้าง #pageContent ใหม่ทั้งตัว
-     * เพื่อจำลองพฤติกรรมตอน Refresh โดยไม่แตะหน้าอื่น
      */
     const content =
       document.querySelector("#pageContent");
 
-    let renderHost = content;
-
-    if(
-      pageName === "inventoryRecipes" &&
-      content
-    ){
-      const freshContent =
-        content.cloneNode(false);
-
-      freshContent.innerHTML = "";
-
-      content.replaceWith(freshContent);
-
-      renderHost = freshContent;
-    }
-
     /*
-     * PAGE 04 สูตร:
-     * ใช้ #pageContent ตัวใหม่โดยตรง
-     *
-     * หน้าอื่น:
-     * ใช้ logic เดิม 100%
+     * ถ้าอยู่ในหน้า Stock อยู่แล้ว
+     * ให้แทนเฉพาะ inventory-page / inventory-subpage
      */
     const current =
-      pageName === "inventoryRecipes"
-        ? null
-        : document.querySelector(
-            ".inventory-page, .inventory-subpage"
-          );
+      document.querySelector(
+        ".inventory-page, .inventory-subpage"
+      );
 
     if(current){
 
       current.outerHTML = html;
 
-    }else if(renderHost){
+    }else if(content){
 
       /*
-       * ใส่ HTML ลงในพื้นที่หลัก
+       * กรณีไม่มีหน้า Stock เดิม
+       * ให้ใส่ลงในพื้นที่หลักโดยตรง
        */
-      renderHost.innerHTML = html;
+      content.innerHTML = html;
 
     }else{
 
@@ -426,37 +379,6 @@ POS.openInventorySubPage = async function(pageName){
         return;
       }
     }
-
-    /*
-     * =================================================
-     * PAGE 04 : สูตร
-     * =================================================
-     *
-     * รอ 2 frame ให้ Safari/iPad สร้าง layout/paint
-     * ของหน้าใหม่ก่อน แล้วจึง render ตาราง
-     */
-    if(
-      pageName === "inventoryRecipes" &&
-      typeof POS.inventoryRecipesLoad === "function"
-    ){
-
-      await new Promise(function(resolve){
-        requestAnimationFrame(function(){
-          requestAnimationFrame(resolve);
-        });
-      });
-
-      const recipesHost =
-        document.querySelector("#pageContent");
-
-      if(recipesHost){
-        void recipesHost.offsetHeight;
-      }
-
-      POS.inventoryRecipesOpening = false;
-      await POS.inventoryRecipesLoad();
-    }
-
 
     /*
      * =================================================
@@ -504,10 +426,6 @@ POS.openInventorySubPage = async function(pageName){
     }
 
   }catch(error){
-
-    if(pageName === "inventoryRecipes"){
-      POS.inventoryRecipesOpening = false;
-    }
 
     console.error(
       "เปิดหน้า Stock ไม่สำเร็จ:",
