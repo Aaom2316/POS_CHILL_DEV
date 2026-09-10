@@ -21,20 +21,21 @@ POS.pages.inventoryRecipes = async function(){
       ">
 
         <div>
-          <div style="
-            height:35px;
+          <h1 class="page-title" style="
+            margin:0 0 5px;
             font-size:30px;
             font-weight:800;
             color:#1f2937;
-          "> 
-          </div>
+          ">
+            📦 Movement
+          </h1>
 
           <p class="page-subtitle" style="
             margin:0;
             color:#64748b;
             font-size:15px;
           ">
-            สูตรอาหารและการใช้วัตถุดิบ1
+            สูตรอาหารและการใช้วัตถุดิบ
           </p>
         </div>
 
