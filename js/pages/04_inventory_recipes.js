@@ -573,104 +573,118 @@ POS.pages.inventoryMovement = async function(){
   `;
 };
 /* =====================================================
-   STOCK PAGE 05 : MOVEMENT DATA
-   อ่านข้อมูลผ่าน POS.api.movementList()
+   RECIPES : LOAD
    ===================================================== */
 
-POS.inventoryMovementData = {
-  movements: [],
-  ingredients: [],
-  purchase_bills: []
-};
+POS.inventoryRecipesLoad = async function(){
 
-POS.inventoryMovementLoad = async function(){
+  const body =
+    document.getElementById(
+      "posInventoryRecipesTableBody"
+    );
 
-  const tbody =
-    document.getElementById("posMovementTableBody");
-
-  if(!tbody){
+  if(!body){
     return;
   }
 
-  tbody.innerHTML = `
+  body.innerHTML = `
     <tr>
-      <td colspan="8" style="
-        padding:45px 20px;
-        text-align:center;
-        color:#94a3b8;
-      ">
-        กำลังโหลดข้อมูล...
+      <td colspan="5"
+          style="
+            padding:55px 20px;
+            text-align:center;
+            color:#94a3b8;
+          ">
+        ⏳ กำลังโหลดข้อมูลสูตร...
       </td>
     </tr>
   `;
 
   try{
 
-    if(!POS.api || typeof POS.api.movementList !== "function"){
+    const result =
+      await POS.api.recipesList();
+
+    if(
+      !result ||
+      result.success !== true
+    ){
       throw new Error(
-        "ไม่พบ POS.api.movementList()"
+        result?.error ||
+        result?.message ||
+        "ไม่สามารถโหลดข้อมูลสูตรได้"
       );
     }
 
-    const result =
-      await POS.api.movementList();
-
     const data =
-      result?.data || result || {};
+      result.data || {};
 
-    POS.inventoryMovementData.movements =
-      Array.isArray(data.movements)
-        ? data.movements
+    POS.inventoryRecipesData =
+      Array.isArray(data.recipes)
+        ? data.recipes
         : [];
 
-    POS.inventoryMovementData.ingredients =
+    POS.inventoryRecipesMenus =
+      Array.isArray(data.menus)
+        ? data.menus
+        : [];
+
+    POS.inventoryRecipesIngredients =
       Array.isArray(data.ingredients)
         ? data.ingredients
         : [];
 
-    POS.inventoryMovementData.purchase_bills =
-      Array.isArray(data.purchase_bills)
-        ? data.purchase_bills
-        : [];
+    POS.inventoryRecipesRender();
 
-    POS.inventoryMovementRender();
-
-  }
-  catch(error){
+  }catch(error){
 
     console.error(
-      "MOVEMENT LOAD ERROR:",
+      "inventoryRecipesLoad error:",
       error
     );
 
-    tbody.innerHTML = `
+    body.innerHTML = `
       <tr>
-        <td colspan="8" style="
-          padding:45px 20px;
-          text-align:center;
-        ">
+        <td colspan="5"
+            style="
+              padding:55px 20px;
+              text-align:center;
+            ">
+
           <div style="
-            font-size:15px;
-            font-weight:800;
-            color:#c0392b;
+            font-size:28px;
+            margin-bottom:8px;
           ">
-            โหลดข้อมูลการเคลื่อนไหวไม่สำเร็จ
+            ⚠️
           </div>
 
           <div style="
-            margin-top:7px;
+            font-size:15px;
+            font-weight:800;
+            color:#64748b;
+          ">
+            โหลดข้อมูลสูตรไม่สำเร็จ
+          </div>
+
+          <div style="
+            margin-top:6px;
             font-size:13px;
             color:#94a3b8;
           ">
-            ${POS.inventoryMovementEscape(
-              error?.message || "เกิดข้อผิดพลาด"
+            ${POS.inventoryRecipesEscape(
+              error?.message ||
+              "กรุณาลองใหม่อีกครั้ง"
             )}
           </div>
+
         </td>
       </tr>
     `;
   }
+
 };
+
+
 
 
 /* =====================================================
