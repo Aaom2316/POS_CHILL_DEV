@@ -1,6 +1,6 @@
 /* ============================================================
    POS CHILL - RECIPES
-   🧪 NEW CODE / UPDATE TEST 13 • 60 ROW PLAIN RENDER
+   🧪 NEW CODE / UPDATE TEST 14 • 60 ROW NO TABLE
    TEST 11: RECIPES + 60 ROW MOCK DATA + REAL RENDER
    ============================================================ */
 
@@ -53,7 +53,7 @@ POS.pages.inventoryRecipes = async function(){
           <p class="page-subtitle" style="
             margin:0;
           ">
-            สูตรอาหารและการใช้วัตถุดิบ • 🧪 NEW CODE / UPDATE TEST 13 • 60 ROW PLAIN RENDER • 🧪 NEW CODE / UPDATE TEST 13 • 60 ROW PLAIN RENDER
+            สูตรอาหารและการใช้วัตถุดิบ • 🧪 NEW CODE / UPDATE TEST 14 • 60 ROW NO TABLE • 🧪 NEW CODE / UPDATE TEST 14 • 60 ROW NO TABLE
           </p>
         </div>
 
@@ -333,124 +333,43 @@ POS.pages.inventoryRecipes = async function(){
         <div style="
           overflow-x:auto;
         ">
-
-          <table style="
+          <div style="
             width:100%;
-            border-collapse:collapse;
-            min-width:980px;
           ">
 
-            <thead>
-              <tr style="
-                background:#f8fafc;
-                border-bottom:1px solid #e2e8f0;
+            <div style="
+              display:grid;
+              grid-template-columns:180px minmax(240px,1fr) 180px 150px 150px;
+              min-width:980px;
+              padding:12px;
+              box-sizing:border-box;
+              background:#f8fafc;
+              border-bottom:1px solid #e2e8f0;
+              color:#475569;
+              font-size:12px;
+              font-weight:800;
+            ">
+              <div>รหัสสูตร</div>
+              <div>ชื่อสูตร</div>
+              <div style="text-align:center;">จำนวนวัตถุดิบ</div>
+              <div style="text-align:center;">สถานะ</div>
+              <div style="text-align:center;">จัดการ</div>
+            </div>
+
+            <div
+              id="posInventoryRecipesTableBody"
+              style="width:100%;"
+            >
+              <div style="
+                padding:60px 20px;
+                text-align:center;
               ">
+                กำลังโหลดข้อมูลสูตร...
+              </div>
+            </div>
 
-                <th style="
-                  padding:12px;
-                  text-align:left;
-                  white-space:nowrap;
-                  color:#475569;
-                  font-size:12px;
-                  font-weight:800;
-                ">
-                  รหัสสูตร
-                </th>
-
-                <th style="
-                  padding:12px;
-                  text-align:left;
-                  white-space:nowrap;
-                  color:#475569;
-                  font-size:12px;
-                  font-weight:800;
-                ">
-                  ชื่อสูตร
-                </th>
-
-                <th style="
-                  padding:12px;
-                  text-align:center;
-                  white-space:nowrap;
-                  color:#475569;
-                  font-size:12px;
-                  font-weight:800;
-                ">
-                  จำนวนวัตถุดิบ
-                </th>
-
-                <th style="
-                  padding:12px;
-                  text-align:center;
-                  white-space:nowrap;
-                  color:#475569;
-                  font-size:12px;
-                  font-weight:800;
-                ">
-                  สถานะ
-                </th>
-
-                <th style="
-                  padding:12px;
-                  text-align:center;
-                  white-space:nowrap;
-                  color:#475569;
-                  font-size:12px;
-                  font-weight:800;
-                ">
-                  จัดการ
-                </th>
-
-              </tr>
-            </thead>
-
-
-            <tbody id="posInventoryRecipesTableBody">
-
-              <tr>
-                <td colspan="5" style="
-                  padding:60px 20px;
-                  text-align:center;
-                ">
-
-                  <div style="
-                    width:56px;
-                    height:56px;
-                    margin:0 auto 12px;
-                    border-radius:50%;
-                    display:flex;
-                    align-items:center;
-                    justify-content:center;
-                    background:#fff1f2;
-                    font-size:25px;
-                  ">
-                    🍳
-                  </div>
-
-                  <div style="
-                    font-size:15px;
-                    font-weight:800;
-                    color:#64748b;
-                  ">
-                    ยังไม่มีข้อมูลสูตร
-                  </div>
-
-                  <div style="
-                    margin-top:5px;
-                    font-size:13px;
-                    color:#94a3b8;
-                  ">
-                    กด “เพิ่มสูตร” เพื่อเริ่มสร้างสูตรอาหาร
-                  </div>
-
-                </td>
-              </tr>
-
-            </tbody>
-
-          </table>
-
-        </div>
+          </div>
+</div>
 
       </div>
 
@@ -547,13 +466,23 @@ POS.inventoryRecipesRender = function(){
     recipes.map(function(item){
 
       return `
-        <tr>
-          <td>${String(item.menu_sku || "-")}</td>
-          <td>${String(item.menu_name || "-")}</td>
-          <td style="text-align:center;">1 รายการ</td>
-          <td style="text-align:center;">ใช้งาน</td>
-          <td style="text-align:center;">ทดสอบ</td>
-        </tr>
+        <div style="
+          display:grid;
+          grid-template-columns:180px minmax(240px,1fr) 180px 150px 150px;
+          min-width:980px;
+          padding:14px 12px;
+          box-sizing:border-box;
+          border-bottom:1px solid #eef1f4;
+          font-size:14px;
+          color:#1f2937;
+          align-items:center;
+        ">
+          <div>${String(item.menu_sku || "-")}</div>
+          <div>${String(item.menu_name || "-")}</div>
+          <div style="text-align:center;">1 รายการ</div>
+          <div style="text-align:center;">ใช้งาน</div>
+          <div style="text-align:center;">ทดสอบ</div>
+        </div>
       `;
 
     }).join("");
