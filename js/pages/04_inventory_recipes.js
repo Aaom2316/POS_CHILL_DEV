@@ -21,14 +21,6 @@ POS.pages.inventoryRecipes = async function(){
       ">
 
         <div>
-          <h1 style="
-            margin:0 0 5px;
-            font-size:30px;
-            font-weight:800;
-            color:#1f2937;
-          ">
-            🍳 สูตร
-          </h1>
 
           <p style="
             margin:0;
