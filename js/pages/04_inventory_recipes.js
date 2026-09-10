@@ -9,12 +9,8 @@ POS.pages.inventoryRecipes = async function(){
   return `
     <div class="inventory-subpage">
 
-      <!-- TEST 32 : HEADER TITLE ONLY -->
-
-      <div style="
-        margin-bottom:22px;
-      ">
-
+      <!-- TEST 33 : HEADER H1 ONLY -->
+      <div>
         <h1 class="page-title" style="
           margin:0 0 5px;
           font-size:30px;
@@ -23,17 +19,8 @@ POS.pages.inventoryRecipes = async function(){
         ">
           🍳 สูตร
         </h1>
-
-        <p class="page-subtitle" style="
-          margin:0;
-        ">
-          สูตรอาหารและการใช้วัตถุดิบ
-        </p>
-
       </div>
 
-
-      <!-- =================================================
            SUMMARY
            ================================================= -->
       <div style="
