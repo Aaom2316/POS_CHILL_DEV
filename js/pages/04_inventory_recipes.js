@@ -1,6 +1,6 @@
 /* ============================================================
    POS CHILL - RECIPES
-   🧪 NEW CODE / UPDATE TEST 15 • 60 ROW MINIMAL PAGE
+   🧪 NEW CODE / UPDATE TEST 17 • SUMMARY TOP
    TEST 11: RECIPES + 60 ROW MOCK DATA + REAL RENDER
    ============================================================ */
 
@@ -22,12 +22,110 @@ POS.pages.inventoryRecipes = async function(){
   return `
     <div class="inventory-subpage">
 
+<!-- =================================================
+           TEST 17 : SUMMARY ONLY
+           เพิ่มกลับมาเฉพาะ Summary 3 กล่องจาก Recipes จริง
+           ส่วนอื่นยังคงเป็น Minimal Page เหมือน TEST 15
+           ================================================= -->
+      <div style="
+        display:grid;
+        grid-template-columns:repeat(3,minmax(0,1fr));
+        gap:16px;
+        margin-bottom:20px;
+      ">
+
+        <div style="
+          background:#fff;
+          border:1px solid #e5e7eb;
+          border-radius:14px;
+          padding:18px;
+          box-shadow:0 2px 8px rgba(15,23,42,.04);
+        ">
+          <div style="
+            color:#94a3b8;
+            font-size:13px;
+            font-weight:700;
+          ">สูตรทั้งหมด</div>
+
+          <div id="posInventoryRecipesTotal" style="
+            margin-top:7px;
+            font-size:25px;
+            font-weight:800;
+            color:#1f2937;
+          ">0</div>
+
+          <div style="
+            margin-top:3px;
+            color:#94a3b8;
+            font-size:12px;
+          ">รายการ</div>
+        </div>
+
+        <div style="
+          background:#fff;
+          border:1px solid #e5e7eb;
+          border-radius:14px;
+          padding:18px;
+          box-shadow:0 2px 8px rgba(15,23,42,.04);
+        ">
+          <div style="
+            color:#94a3b8;
+            font-size:13px;
+            font-weight:700;
+          ">ใช้งานอยู่</div>
+
+          <div id="posInventoryRecipesActive" style="
+            margin-top:7px;
+            font-size:25px;
+            font-weight:800;
+            color:#267a3d;
+          ">0</div>
+
+          <div style="
+            margin-top:3px;
+            color:#94a3b8;
+            font-size:12px;
+          ">สูตร</div>
+        </div>
+
+        <div style="
+          background:#fff;
+          border:1px solid #e5e7eb;
+          border-radius:14px;
+          padding:18px;
+          box-shadow:0 2px 8px rgba(15,23,42,.04);
+        ">
+          <div style="
+            color:#94a3b8;
+            font-size:13px;
+            font-weight:700;
+          ">วัตถุดิบที่ใช้</div>
+
+          <div id="posInventoryRecipesIngredients" style="
+            margin-top:7px;
+            font-size:25px;
+            font-weight:800;
+            color:#2563eb;
+          ">0</div>
+
+          <div style="
+            margin-top:3px;
+            color:#94a3b8;
+            font-size:12px;
+          ">รายการ</div>
+        </div>
+
+      </div>
+
+      <div id="posInventoryRecipesListCount" style="display:none;"></div>
+
+
       <div style="
         padding:20px;
         font-size:24px;
         font-weight:800;
       ">
-        🍳 สูตร • 🧪 NEW CODE / UPDATE TEST 15 • MINIMAL PAGE
+        🍳 สูตร • 🧪 NEW CODE / UPDATE TEST 17 • SUMMARY TOP
       </div>
 
       <div
@@ -43,10 +141,7 @@ POS.pages.inventoryRecipes = async function(){
         "
       ></div>
 
-      <div id="posInventoryRecipesTotal" style="display:none;"></div>
-      <div id="posInventoryRecipesActive" style="display:none;"></div>
-      <div id="posInventoryRecipesIngredients" style="display:none;"></div>
-      <div id="posInventoryRecipesListCount" style="display:none;"></div>
+      
 
     </div>
   `;
