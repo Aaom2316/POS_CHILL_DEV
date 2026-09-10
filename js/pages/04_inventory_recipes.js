@@ -27,7 +27,7 @@ POS.pages.inventoryRecipes = async function(){
             font-weight:800;
             color:#1f2937;
           ">
-            📦 Movement
+            🍳 Recipe
           </h1>
 
           <p class="page-subtitle" style="
