@@ -9,7 +9,7 @@ window.POS = window.POS || {};
 POS.pages = POS.pages || {};
 
 POS.pages.inventoryRecipes = async function(){
-  setTimeout(() => , 0);
+  setTimeout(() => {}, 0);
 
   return `
     <div class="inventory-subpage">
