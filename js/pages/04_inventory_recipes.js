@@ -1,6 +1,6 @@
 /* ============================================================
    POS CHILL - RECIPES
-   🧪 NEW CODE / UPDATE TEST 17 • SUMMARY TOP
+   🧪 NEW CODE / UPDATE TEST 18 • SEARCH ONLY
    TEST 11: RECIPES + 60 ROW MOCK DATA + REAL RENDER
    ============================================================ */
 
@@ -125,13 +125,69 @@ POS.pages.inventoryRecipes = async function(){
         font-size:24px;
         font-weight:800;
       ">
-        🍳 สูตร • 🧪 NEW CODE / UPDATE TEST 17 • SUMMARY TOP
+        🍳 สูตร • 🧪 NEW CODE / UPDATE TEST 18 • SEARCH ONLY
       </div>
 
-      <div
-        id="posInventoryRecipesSearch"
-        style="display:none;"
-      ></div>
+      <!-- =================================================
+           TEST 18 : SEARCH ONLY
+           เพิ่มกลับมาเฉพาะ Search card จาก Recipes จริง
+           ================================================= -->
+      <div class="card" style="
+        margin-bottom:20px;
+      ">
+
+        <div style="
+          display:grid;
+          grid-template-columns:minmax(0,1fr) auto;
+          gap:14px;
+          align-items:end;
+        ">
+
+          <div>
+            <label style="
+              display:block;
+              margin-bottom:7px;
+              color:#475569;
+              font-size:13px;
+              font-weight:700;
+            ">
+              🔎 ค้นหาสูตร
+            </label>
+
+            <input
+              id="posInventoryRecipesSearch"
+              type="text"
+              placeholder="ค้นหาชื่อสูตร / รหัสสูตร"
+              style="
+                width:100%;
+                height:43px;
+                box-sizing:border-box;
+                padding:0 13px;
+                border:1px solid #d7dee8;
+                border-radius:9px;
+                outline:none;
+                font-size:14px;
+              "
+            >
+          </div>
+
+          <button
+            id="posInventoryRecipesRefreshBtn"
+            class="btn-secondary"
+            type="button"
+            style="
+              min-height:43px;
+              padding:0 15px;
+              border-radius:9px;
+              font-weight:700;
+            "
+          >
+            🔄 รีเฟรช
+          </button>
+
+        </div>
+
+      </div>
 
       <div
         id="posInventoryRecipesTableBody"
