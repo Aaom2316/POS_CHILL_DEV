@@ -1,3 +1,9 @@
+/* ============================================================
+   POS CHILL - RECIPES TEST 04
+   NEW CODE TEST MARKER
+   TEST 04: TRUE RECIPES RENDER BASE
+   ============================================================ */
+
 window.POS = window.POS || {};
 POS.pages = POS.pages || {};
 
@@ -37,7 +43,7 @@ POS.pages.inventoryMovement = async function(){
             color:#64748b;
             font-size:15px;
           ">
-            ประวัติการเคลื่อนไหวของสต็อก
+            ประวัติการเคลื่อนไหวของสต็อก • 🧪 NEW CODE / UPDATE TEST 04
           </p>
         </div>
 
@@ -1200,4 +1206,3 @@ POS.inventoryMovementEscape = function(value){
    ===================================================== */
 POS.pages.inventoryRecipes = POS.pages.inventoryMovement;
 POS.inventoryRecipesLoad = POS.inventoryMovementLoad;
-POS.inventoryRecipesRender = POS.inventoryMovementRender;
