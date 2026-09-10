@@ -691,133 +691,176 @@ POS.inventoryRecipesLoad = async function(){
    RENDER
    ===================================================== */
 
-POS.inventoryMovementRender = function(){
+POS.inventoryRecipesRender = function(){
 
-  const tbody =
-    document.getElementById("posMovementTableBody");
+  const body =
+    document.getElementById(
+      "posMovementTableBody"
+    );
 
-  if(!tbody){
+  if(!body){
     return;
   }
 
-  const search =
+  const searchInput =
+    document.getElementById(
+      "posMovementSearch"
+    );
+
+  const keyword =
     String(
-      document.getElementById(
-        "posMovementSearch"
-      )?.value || ""
+      searchInput?.value || ""
     )
-    .trim()
-    .toLowerCase();
+      .trim()
+      .toLowerCase();
 
-  const type =
-    String(
-      document.getElementById(
-        "posMovementType"
-      )?.value || ""
-    ).trim();
-
-  const date =
-    String(
-      document.getElementById(
-        "posMovementDate"
-      )?.value || ""
-    ).trim();
-
-  const ingredients =
-    POS.inventoryMovementData.ingredients || [];
-
-  const purchaseBills =
-    POS.inventoryMovementData.purchase_bills || [];
-
-  const ingredientMap = new Map(
-    ingredients.map(item => [
-      String(item.id),
-      item
-    ])
-  );
-
-  const billMap = new Map(
-    purchaseBills.map(item => [
-      String(item.id),
-      item
-    ])
-  );
-
-  const allMovements =
+  const recipes =
     Array.isArray(
-      POS.inventoryMovementData.movements
+      POS.inventoryRecipesData
     )
-      ? POS.inventoryMovementData.movements
+      ? POS.inventoryRecipesData
       : [];
 
-  const filtered =
-    allMovements.filter(row => {
+  const grouped = new Map();
 
-      if(
-        type &&
-        String(row.movement_type || "") !== type
-      ){
-        return false;
-      }
+  recipes.forEach(function(item){
 
-      if(date){
+    const menuId =
+      String(
+        item?.menu_id || ""
+      );
 
-        const rowDate =
-          String(
-            row.created_at || ""
-          ).substring(0,10);
+    if(!menuId){
+      return;
+    }
 
-        if(rowDate !== date){
-          return false;
+    if(!grouped.has(menuId)){
+      grouped.set(
+        menuId,
+        {
+          menu_id: menuId,
+          menu_sku:
+            item?.menu_sku || "-",
+          menu_name:
+            item?.menu_name || "-",
+          items: []
         }
-      }
+      );
+    }
 
-      if(search){
+    grouped
+      .get(menuId)
+      .items
+      .push(item);
 
-        const ingredient =
-          ingredientMap.get(
-            String(row.ingredient_id)
-          );
+  });
 
-        const bill =
-          billMap.get(
-            String(row.reference_id)
-          );
 
-        const haystack = [
-          ingredient?.name,
-          ingredient?.sku,
-          row.movement_type,
-          row.reference_type,
-          bill?.bill_no,
-          row.reference_id,
-          row.remark
-        ]
-        .map(value =>
-          String(value || "").toLowerCase()
-        )
-        .join(" ");
+  let rows =
+    Array.from(
+      grouped.values()
+    );
 
-        if(!haystack.includes(search)){
-          return false;
-        }
-      }
 
-      return true;
-    });
+  if(keyword){
 
-  POS.inventoryMovementUpdateSummary(
-    filtered
-  );
+    rows =
+      rows.filter(function(group){
 
-  if(!filtered.length){
+        const menuText =
+          (
+            String(group.menu_sku || "") +
+            " " +
+            String(group.menu_name || "")
+          )
+            .toLowerCase();
 
-    tbody.innerHTML = `
+        return menuText.includes(keyword);
+
+      });
+
+  }
+
+
+  rows.sort(function(a,b){
+
+    return String(a.menu_name || "")
+      .localeCompare(
+        String(b.menu_name || ""),
+        "th"
+      );
+
+  });
+
+
+  const totalRecipes =
+    rows.length;
+
+  const activeRecipes =
+    Array.from(
+      grouped.values()
+    ).length;
+
+  const ingredientCount =
+    new Set(
+      recipes
+        .map(x => String(x?.ingredient_id || ""))
+        .filter(Boolean)
+    ).size;
+
+
+  const totalEl =
+    document.getElementById(
+      "posMovementTotalCount"
+    );
+
+  const activeEl =
+    document.getElementById(
+      "posMovementPurchaseCount"
+    );
+
+  const ingredientEl =
+    document.getElementById(
+      "posMovementSaleCount"
+    );
+
+  const listCountEl =
+    document.getElementById(
+      "posMovementListCount"
+    );
+
+
+  if(totalEl){
+    totalEl.textContent =
+      String(totalRecipes);
+  }
+
+  if(activeEl){
+    activeEl.textContent =
+      String(activeRecipes);
+  }
+
+  if(ingredientEl){
+    ingredientEl.textContent =
+      String(ingredientCount);
+  }
+
+  if(listCountEl){
+    listCountEl.textContent =
+      String(rows.length) +
+      " รายการ";
+  }
+
+
+  if(!rows.length){
+
+    body.innerHTML = `
       <tr>
-        <td colspan="8" style="
-          padding:60px 20px;
-          text-align:center;
-        ">
+        <td colspan="5"
+            style="
+              padding:60px 20px;
+              text-align:center;
+            ">
 
           <div style="
             width:56px;
@@ -827,10 +870,10 @@ POS.inventoryMovementRender = function(){
             display:flex;
             align-items:center;
             justify-content:center;
-            background:#f1f5f9;
+            background:#fff1f2;
             font-size:25px;
           ">
-            📦
+            🍳
           </div>
 
           <div style="
@@ -838,7 +881,9 @@ POS.inventoryMovementRender = function(){
             font-weight:800;
             color:#64748b;
           ">
-            ไม่พบข้อมูลการเคลื่อนไหว
+            ${keyword
+              ? "ไม่พบสูตรที่ค้นหา"
+              : "ยังไม่มีข้อมูลสูตร"}
           </div>
 
           <div style="
@@ -846,7 +891,9 @@ POS.inventoryMovementRender = function(){
             font-size:13px;
             color:#94a3b8;
           ">
-            ลองเปลี่ยนเงื่อนไขค้นหาหรือช่วงวันที่
+            ${keyword
+              ? "ลองเปลี่ยนคำค้นหา"
+              : "กด “เพิ่มสูตร” เพื่อเริ่มสร้างสูตรอาหาร"}
           </div>
 
         </td>
@@ -856,42 +903,9 @@ POS.inventoryMovementRender = function(){
     return;
   }
 
-  tbody.innerHTML =
-    filtered.map(row => {
 
-      const ingredient =
-        ingredientMap.get(
-          String(row.ingredient_id)
-        ) || {};
-
-      const bill =
-        billMap.get(
-          String(row.reference_id)
-        );
-
-      const movementType =
-        String(
-          row.movement_type || ""
-        );
-
-      const typeInfo =
-        POS.inventoryMovementTypeInfo(
-          movementType
-        );
-
-      const qty =
-        Number(row.qty ?? 0);
-
-      const before =
-        Number(row.stock_before ?? 0);
-
-      const after =
-        Number(row.stock_after ?? 0);
-
-      const reference =
-        bill?.bill_no ||
-        row.reference_id ||
-        "-";
+  body.innerHTML =
+    rows.map(function(group){
 
       return `
         <tr style="
@@ -899,117 +913,88 @@ POS.inventoryMovementRender = function(){
         ">
 
           <td style="
-            padding:13px 12px;
-            white-space:nowrap;
-            color:#475569;
+            padding:14px 12px;
             font-size:13px;
+            white-space:nowrap;
+            color:#64748b;
+            font-weight:700;
           ">
-            ${POS.inventoryMovementFormatDateTime(
-              row.created_at
+            ${POS.inventoryRecipesEscape(
+              group.menu_sku
             )}
           </td>
 
           <td style="
-            padding:13px 12px;
+            padding:14px 12px;
+            font-size:14px;
+            white-space:nowrap;
+            color:#1f2937;
+            font-weight:800;
           ">
-            <div style="
-              font-weight:800;
-              color:#1f2937;
-            ">
-              ${POS.inventoryMovementEscape(
-                ingredient.name || "-"
-              )}
-            </div>
-
-            <div style="
-              margin-top:3px;
-              font-size:12px;
-              color:#94a3b8;
-            ">
-              ${POS.inventoryMovementEscape(
-                ingredient.sku || ""
-              )}
-            </div>
+            ${POS.inventoryRecipesEscape(
+              group.menu_name
+            )}
           </td>
 
           <td style="
-            padding:13px 12px;
+            padding:14px 12px;
+            text-align:center;
+            white-space:nowrap;
+            font-size:14px;
+            font-weight:800;
+            color:#2563eb;
+          ">
+            ${group.items.length}
+            รายการ
+          </td>
+
+          <td style="
+            padding:14px 12px;
             text-align:center;
             white-space:nowrap;
           ">
             <span style="
               display:inline-block;
-              padding:6px 9px;
+              min-width:72px;
+              padding:6px 10px;
               border-radius:999px;
-              background:${typeInfo.bg};
-              color:${typeInfo.color};
+              background:#e8f6ec;
+              color:#267a3d;
               font-size:12px;
               font-weight:800;
             ">
-              ${typeInfo.label}
+              ใช้งาน
             </span>
           </td>
 
           <td style="
-            padding:13px 12px;
-            text-align:right;
-            white-space:nowrap;
-            font-weight:800;
-            color:${typeInfo.qtyColor};
-          ">
-            ${POS.inventoryMovementFormatQty(
-              qty,
-              ingredient.base_unit
-            )}
-          </td>
-
-          <td style="
-            padding:13px 12px;
-            text-align:right;
-            white-space:nowrap;
-            color:#64748b;
-          ">
-            ${POS.inventoryMovementFormatNumber(
-              before
-            )}
-          </td>
-
-          <td style="
-            padding:13px 12px;
-            text-align:right;
-            white-space:nowrap;
-            font-weight:800;
-            color:#1f2937;
-          ">
-            ${POS.inventoryMovementFormatNumber(
-              after
-            )}
-          </td>
-
-          <td style="
-            padding:13px 12px;
-            color:#2563eb;
-            font-weight:700;
+            padding:14px 12px;
+            text-align:center;
             white-space:nowrap;
           ">
-            ${POS.inventoryMovementEscape(
-              reference
-            )}
-          </td>
-
-          <td style="
-            padding:13px 12px;
-            color:#64748b;
-            min-width:180px;
-          ">
-            ${POS.inventoryMovementEscape(
-              row.remark || "-"
-            )}
+            <button
+              type="button"
+              onclick="POS.inventoryRecipesOpenManage('${String(group.menu_id).replace(/'/g,"\\'")}')"
+              style="
+                min-height:36px;
+                padding:0 12px;
+                border-radius:8px;
+                border:1px solid #d7dee8;
+                background:#fff;
+                color:#334155;
+                font-weight:700;
+                cursor:pointer;
+              "
+            >
+              ⚙️ จัดการ
+            </button>
           </td>
 
         </tr>
       `;
+
     }).join("");
+
 };
 
 
