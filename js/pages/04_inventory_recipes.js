@@ -11,7 +11,47 @@ POS.pages = POS.pages || {};
 POS.pages.inventoryRecipes = async function(){
   setTimeout(() => {}, 0);
 
+
+  setTimeout(function(){
+    const tbody = document.getElementById("posInventoryRecipesTableBody");
+    if(!tbody) return;
+
+    const mockCount = 70 + (new Date().getSeconds() % 31);
+
+    tbody.innerHTML = Array.from({length:mockCount}, function(_, i){
+      const n = i + 1;
+      const active = n % 7 !== 0;
+
+      return `
+        <tr style="border-bottom:1px solid #eef1f4;">
+          <td style="padding:13px 12px;white-space:nowrap;font-weight:700;color:#334155;">REC-${String(n).padStart(3,"0")}</td>
+          <td style="padding:13px 12px;white-space:nowrap;color:#334155;">สูตรทดสอบ ${n}</td>
+          <td style="padding:13px 12px;white-space:nowrap;color:#475569;">${["อาหาร","เครื่องดื่ม","ของหวาน"][n%3]}</td>
+          <td style="padding:13px 12px;text-align:right;white-space:nowrap;color:#475569;">${2 + n%6}</td>
+          <td style="padding:13px 12px;white-space:nowrap;color:#475569;">รายการ</td>
+          <td style="padding:13px 12px;white-space:nowrap;">
+            <span style="display:inline-block;padding:5px 10px;border-radius:999px;font-size:12px;font-weight:700;background:${active ? "#dcfce7" : "#fee2e2"};color:${active ? "#166534" : "#991b1b"};">
+              ${active ? "ใช้งาน" : "ปิดใช้งาน"}
+            </span>
+          </td>
+          <td style="padding:13px 12px;white-space:nowrap;color:#64748b;">10/09/2026</td>
+          <td style="padding:13px 12px;white-space:nowrap;">
+            <button type="button" style="padding:7px 11px;border:1px solid #d7dce2;border-radius:8px;background:#fff;font-weight:700;color:#374151;">
+              ⚙️ จัดการ
+            </button>
+          </td>
+        </tr>`;
+    }).join("");
+
+    const total = document.getElementById("posInventoryRecipesTotal");
+    const listCount = document.getElementById("posMovementListCount");
+
+    if(total) total.textContent = String(mockCount);
+    if(listCount) listCount.textContent = `${mockCount} รายการ`;
+  }, 0);
+
   return `
+
     <div class="inventory-subpage">
 
       <!-- =================================================
@@ -32,7 +72,7 @@ POS.pages.inventoryRecipes = async function(){
             font-weight:800;
             color:#1f2937;
           ">
-            📋 สูตร <span style="font-size:12px;font-weight:700;color:#94a3b8;">TEST ${70 + (new Date().getSeconds() % 31)}</span>
+            📋 สูตร <span style="font-size:12px;font-weight:700;color:#94a3b8;">TEST DEFERRED 70-100</span>
           </h1>
 
           <p class="page-subtitle" style="
@@ -522,34 +562,7 @@ POS.pages.inventoryRecipes = async function(){
             </thead>
 
 
-            <tbody id="posInventoryRecipesTableBody">
-            ${(() => {
-              const mockCount = 70 + (new Date().getSeconds() % 31);
-              return Array.from({length:mockCount}, function(_, i){
-                const n = i + 1;
-                const active = n % 7 !== 0;
-                return `
-                  <tr style="border-bottom:1px solid #eef1f4;">
-                    <td style="padding:13px 12px;white-space:nowrap;font-weight:700;color:#334155;">REC-${String(n).padStart(3,"0")}</td>
-                    <td style="padding:13px 12px;white-space:nowrap;color:#334155;">สูตรทดสอบ ${n}</td>
-                    <td style="padding:13px 12px;white-space:nowrap;color:#475569;">${["อาหาร","เครื่องดื่ม","ของหวาน"][n%3]}</td>
-                    <td style="padding:13px 12px;text-align:right;white-space:nowrap;color:#475569;">${2 + n%6}</td>
-                    <td style="padding:13px 12px;white-space:nowrap;color:#475569;">รายการ</td>
-                    <td style="padding:13px 12px;white-space:nowrap;">
-                      <span style="display:inline-block;padding:5px 10px;border-radius:999px;font-size:12px;font-weight:700;background:${active ? "#dcfce7" : "#fee2e2"};color:${active ? "#166534" : "#991b1b"};">
-                        ${active ? "ใช้งาน" : "ปิดใช้งาน"}
-                      </span>
-                    </td>
-                    <td style="padding:13px 12px;white-space:nowrap;color:#64748b;">10/09/2026</td>
-                    <td style="padding:13px 12px;white-space:nowrap;">
-                      <button type="button" style="padding:7px 11px;border:1px solid #d7dce2;border-radius:8px;background:#fff;font-weight:700;color:#374151;">
-                        ⚙️ จัดการ
-                      </button>
-                    </td>
-                  </tr>`;
-              }).join("");
-            })()}
-          </tbody>
+            <tbody id="posInventoryRecipesTableBody"></tbody>
 
           </table>
 
