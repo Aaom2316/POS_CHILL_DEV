@@ -551,7 +551,8 @@ setTimeout(function(){
   const tbody = document.getElementById("posInventoryRecipesTableBody");
   if(!tbody) return;
 
-  const rows = Array.from({length:100}, function(_, i){
+  const mockCount = 70 + (new Date().getSeconds() % 31); // 70–100 แถว เปลี่ยนทุกครั้งที่โหลด
+    const rows = Array.from({length:mockCount}, function(_, i){
     const n = i + 1;
     const active = n % 7 !== 0;
     return `
@@ -577,6 +578,12 @@ setTimeout(function(){
 
   tbody.innerHTML = rows;
 
+
+  const title = document.querySelector(".inventory-subpage .page-title");
+  if(title){
+    title.innerHTML = `📋 สูตร <span style="font-size:12px;font-weight:700;color:#94a3b8;">TEST ${mockCount}</span>`;
+  }
+
   const total = document.getElementById("posInventoryRecipesTotal");
-  if(total) total.textContent = "100";
+  if(total) total.textContent = String(mockCount);
 }, 0);
