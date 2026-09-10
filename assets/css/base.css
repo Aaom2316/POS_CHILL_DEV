@@ -1,0 +1,6 @@
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;min-height:100%;font-family:Arial,"Noto Sans Thai",sans-serif;background:#f4f6f8;color:#1f2937}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+a{text-decoration:none;color:inherit}
+.hidden{display:none!important}
